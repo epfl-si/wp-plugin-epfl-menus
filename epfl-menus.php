@@ -1532,6 +1532,7 @@ class MenuItemController extends CustomPostTypeController
         add_action('init', array($thisclass, 'register_post_type'));
 
         add_action('rest_api_init', function() use ($thisclass) {
+            $thisclass::hook_rest_api_fields();
             foreach (static::get_model_class()::all()
                      as $emi) {
                 $thisclass::hook_pubsub($emi);
@@ -1586,6 +1587,14 @@ class MenuItemController extends CustomPostTypeController
                 _MenusJSApp::load();
             }
         });
+    }
+
+    static function hook_rest_api_fields () {
+        register_rest_field(ExternalMenuItem::get_post_type(),
+                            'sync_status',
+                            array('get_callback' => function($post_array) {
+                                return ExternalMenuItem::get($post_array['id'])->get_sync_status();
+                            }));
     }
 
     static private function _get_api () {
