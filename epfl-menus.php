@@ -1507,7 +1507,9 @@ MenuRESTController::hook();
  * An external menu item is handled as a Wordpress custom post type,
  * with in-database persistence and a custom editor page in the admin
  * menu featuring a custom rendering widget as the main matter,
- * instead of the customary TinyMCE.
+ * instead of the customary TinyMCE. An external menu item also enjoys
+ * a read-only, WordPress-compliant REST API, which is entirely
+ * separate from the @link MenuRESTController.
  *
  * MenuItemController is a "pure static" class, i.e. no instances are
  * ever constructed.
@@ -1607,8 +1609,8 @@ class MenuItemController extends CustomPostTypeController
                 'singular_name'      => ___('External Menu'),
                 'menu_name'          => ___('External Menus'),
                 'name_admin_bar'     => __x('External Menu', 'add new on admin bar'),
-		'add_new'            => ___('Add New External Menu'),
-		'add_new_item'       => ___('Add New External Menu'),
+                'add_new'            => ___('Add New External Menu'),
+                'add_new_item'       => ___('Add New External Menu'),
                 'view_item'          => ___('View External Menu'),
                 'edit_item'          => ___('Edit External Menu'),
                 'all_items'          => ___('All External Menus'),
@@ -1618,11 +1620,12 @@ class MenuItemController extends CustomPostTypeController
             'public'                => false,
             'show_ui'               => true,
             'show_in_nav_menus'     => true,
+            'show_in_rest'          => true,
             'has_archive'           => false,
             'menu_icon'             => 'dashicons-list-view',
             'capabilities'          => static::capabilities_for_edit_but_not_create(),
-            'register_meta_box_cb' => array(get_called_class(),
-                                            'register_meta_boxes')
+            'register_meta_box_cb'  => array(get_called_class(),
+                                             'register_meta_boxes')
         ));
     }
 
