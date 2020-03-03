@@ -1594,6 +1594,18 @@ class MenuItemController extends CustomPostTypeController
             'sync_status', function($emi) {
                 return $emi->get_sync_status();
             });
+        static::register_rest_field(
+            'lang', function($emi) {
+                return $emi->get_language();
+            });
+        static::register_post_meta('site_url', array(
+            'type' => 'string',
+            'show_in_rest' => true
+        ));
+        static::register_post_meta('remote_slug', array(
+            'type' => 'string',
+            'show_in_rest' => true
+        ));
     }
 
     static function register_rest_field ($attribute, $args_or_getter) {
@@ -1606,6 +1618,14 @@ class MenuItemController extends CustomPostTypeController
             $args = $args_or_getter;
         }
         register_rest_field(ExternalMenuItem::get_post_type(), $attribute, $args);
+    }
+
+    static function register_post_meta ($attribute, $opts) {
+        if (array_key_exists($attribute, ExternalMenuItem::META_ACCESSORS)) {
+            $attribute = ExternalMenuItem::META_ACCESSORS[$attribute];
+        }
+
+        register_post_meta(ExternalMenuItem::get_post_type(), $attribute, $opts);
     }
 
     static private function _get_api () {
