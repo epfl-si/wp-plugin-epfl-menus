@@ -1590,11 +1590,22 @@ class MenuItemController extends CustomPostTypeController
     }
 
     static function hook_rest_api_fields () {
-        register_rest_field(ExternalMenuItem::get_post_type(),
-                            'sync_status',
-                            array('get_callback' => function($post_array) {
-                                return ExternalMenuItem::get($post_array['id'])->get_sync_status();
-                            }));
+        static::register_rest_field(
+            'sync_status', function($emi) {
+                return $emi->get_sync_status();
+            });
+    }
+
+    static function register_rest_field ($attribute, $args_or_getter) {
+        if (is_callable($args_or_getter)) {
+            $args = array('get_callback' => function($post_array) use ($args_or_getter) {
+                $emi = ExternalMenuItem::get($post_array['id']);
+                return call_user_func($args_or_getter, $emi);
+            });
+        } else {
+            $args = $args_or_getter;
+        }
+        register_rest_field(ExternalMenuItem::get_post_type(), $attribute, $args);
     }
 
     static private function _get_api () {
