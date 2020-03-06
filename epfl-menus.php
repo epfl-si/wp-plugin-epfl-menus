@@ -2,7 +2,7 @@
 /*
  * Plugin Name: EPFL Menus
  * Description: Stitch menus across sites
- * Version:     0.1
+ * Version:     0.2
  *
  */
 
@@ -2052,6 +2052,7 @@ class MenuFrontendController
 MenuFrontendController::hook();
 
 
-if (class_exists('\WP_CLI')) {
+if ( defined( 'WP_CLI' ) && WP_CLI ) 
+{
     require_once __DIR__ . '/wpcli.php';
 }
