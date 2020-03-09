@@ -389,6 +389,11 @@ class PublishController
         $this->_do_forward($event);
     }
 
+    /**
+     * Forward $event to all subscribers.
+     *
+     * @param EPFL\Pubsub\Causality $event
+     */
     public function _do_forward ($event) {
         foreach (_Subscriber::all_by_publisher_url($this->subscribe_uri)
                  as $sub) {
