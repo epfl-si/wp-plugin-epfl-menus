@@ -506,9 +506,11 @@ class _Subscriber extends WPDBModel
                 @RESTClient::POST_JSON_ff($url, $payload);
             }
             $this->mark_success();
+            return NULL;
         } catch (RESTClientError $e) {
             error_log("attempt_post failed on $this: " . $e);
-            $this->mark_failure();
+            $this->mark_failure($e);
+            return $e;
         }
     }
 
@@ -522,8 +524,10 @@ class _Subscriber extends WPDBModel
             $this->last_attempt, $this->ID);
     }
 
-    public function mark_failure () {
-        if (! $this->failing_since) {
+    public function mark_failure ($error) {
+        if (isset($error->http_code) && $error->http_code === 404) {
+            $this->forget();
+        } elseif (! $this->failing_since) {
             $this->last_attempt = $this->failing_since = time();
             $this->query(
             "UPDATE %T SET failing_since = FROM_UNIXTIME(%d),
@@ -532,9 +536,7 @@ class _Subscriber extends WPDBModel
             $this->failing_since, $this->last_attempt, $this->ID);
         } elseif (time() - $this->failing_since >
                   self::DEAD_SUBSCRIBER_TIMEOUT_SECS) {
-            $this->query(
-                "DELETE FROM %T WHERE id = %d",
-                $this->ID);
+            $this->forget();
         } else {
             $this->last_attempt = time();
             $this->query(
@@ -542,6 +544,11 @@ class _Subscriber extends WPDBModel
                  WHERE id = %d;",
                 $this->last_attempt, $this->ID);
         }
+    }
+
+    private function forget () {
+        $this->query("DELETE FROM %T WHERE id = %d",
+                     $this->ID);
     }
 
     function __toString () {
