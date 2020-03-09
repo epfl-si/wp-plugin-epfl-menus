@@ -408,7 +408,7 @@ class PublishController
  * Persistent records for subscribers, with contact details and
  * automated cleanup of failing subscribers
  *
- * An instance represents one subscriber, and besides it model duties
+ * An instance represents one subscriber, and besides its model duties
  * it also knows how to do some controller things, namely to send the
  * 'real' webhook (using an instance of @link Causality as the sole
  * payload), and the test one (to synchronously check that two-way
