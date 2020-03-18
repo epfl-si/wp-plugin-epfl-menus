@@ -432,6 +432,33 @@ class _Subscriber extends WPDBModel
     }
     // We never drop that table, even on plugin removal.
 
+    /**
+     * Ping all subscribers once synchronously, and act upon 404's and other errors
+     *
+     * @param $success Function A function called with an instance of this class
+     *                          as its sole parameter for each successful ping
+     *
+     * @param $fail Function    A function called with an instance of this class
+     *                          and an exception as parrameters for each
+     *                          unsuccessful ping
+     */
+    static public function ping_all ($success = NULL, $fail = NULL) {
+        $event = Causality::start();
+
+        foreach (static::all() as $sub) {
+            // Just making a synchronous ->attempt_post() implicitly
+            // takes care of immediate (in case of 404) or delayed (in
+            // case of other errors) expiration
+            $exn = $sub->attempt_post($sub->get_callback_url(), $event->marshall(),
+                                          /* $is_sync = */ TRUE);
+            if ($exn) {
+                if ($fail) call_user_func($fail, $sub, $exn);
+            } else {
+                if ($success) call_user_func($success, $sub);
+            }
+        }
+    }
+
     protected function __construct ($id, $details) {
         $this->ID = 0 + $id;
         assert($this->ID > 0);
@@ -475,6 +502,10 @@ class _Subscriber extends WPDBModel
                 'publisher_url' => $publisher_url,
                 'subscriber_id' => $subscriber_id,
                 'callback_url'  => $callback_url));
+    }
+
+    static function all () {
+        return static::_where();
     }
 
     static function all_by_publisher_url ($publisher_url) {
@@ -570,7 +601,9 @@ class _Subscriber extends WPDBModel
 
 _Subscriber::hook();
 
-
+function ping_all_subscribers ($success = NULL, $fail = NULL) {
+    _Subscriber::ping_all($success, $fail);
+}
 
 /**
  * A data structure used to prevent loops in pubsub propagation.

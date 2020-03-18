@@ -15,6 +15,9 @@ use function EPFL\I18N\___;
 require_once(__DIR__ . '/epfl-menus.php');
 use \EPFL\Menus\ExternalMenuItem;
 
+require_once(__DIR__ . '/lib/pubsub.php');
+use function \EPFL\Pubsub\ping_all_subscribers;
+
 function log_success ($details) {
     if ($details) {
         WP_CLI::log(sprintf('✓ %s', $details));
@@ -34,8 +37,9 @@ function log_failure ($details) {
 class EPFLMenusCLICommand extends WP_CLI_Command
 {
     public static function hook () {
-        WP_CLI::add_command('epfl menus refresh', [get_called_class(), 'refresh' ]);
-        WP_CLI::add_command('epfl menus add-external-menu-item', [get_called_class(), 'add_external_menu_item' ]);
+        $class = get_called_class();
+        WP_CLI::add_command('epfl menus refresh', [$class, 'refresh' ]);
+        WP_CLI::add_command('epfl menus add-external-menu-item', [$class, 'add_external_menu_item' ]);
     }
 
     public function refresh () {
@@ -60,6 +64,30 @@ class EPFLMenusCLICommand extends WP_CLI_Command
                 log_failure($emi);
             }
         }
+
+        WP_CLI::log(sprintf(___('Pinging and expiring subscribers...')));
+
+        $successes = 0;
+        $notfounds = 0;
+        $errors    = 0;
+
+        ping_all_subscribers(
+            /* $success = */ function($sub) use (&$successes) {
+                log_success();
+                $successes++;
+            },
+            /* $fail = */ function($sub, $exn) use (&$notfounds, &$errors) {
+                log_failure($exn->http_code);
+                if ($exn->http_code === 404) {
+                    $notfounds++;
+                } else {
+                    $errors++;
+                }
+            }
+        );
+
+        WP_CLI::log(sprintf(___('%d subscriber(s) updated, %d 404 error(s) (dropped), %d other error(s)'),
+                            $successes, $notfounds, $errors));
     }
 
     /**
