@@ -15,6 +15,22 @@ use function EPFL\I18N\___;
 require_once(__DIR__ . '/epfl-menus.php');
 use \EPFL\Menus\ExternalMenuItem;
 
+function log_success ($details) {
+    if ($details) {
+        WP_CLI::log(sprintf('✓ %s', $details));
+    } else {
+        WP_CLI::log('✓');
+    }
+}
+
+function log_failure ($details) {
+    if ($details) {
+        WP_CLI::log(sprintf('\u001b[31m✗ %s\u001b[0m', $details));
+    } else {
+        WP_CLI::log(sprintf('\u001b[31m✗\u001b[0m'));
+    }
+}
+
 class EPFLMenusCLICommand extends WP_CLI_Command
 {
     public static function hook () {
@@ -39,9 +55,9 @@ class EPFLMenusCLICommand extends WP_CLI_Command
         foreach ($all as $emi) {
             try {
                 $emi->refresh();
-                WP_CLI::log(sprintf(___('✓ %s'), $emi));
+                log_success($emi);
             } catch (\Throwable $t) {
-                WP_CLI::log(sprintf(___('\u001b[31m✗ %s\u001b[0m'), $emi));
+                log_failure($emi);
             }
         }
     }
