@@ -44,7 +44,6 @@ class EPFLMenusCLICommand extends WP_CLI_Command
                 WP_CLI::log(sprintf(___('\u001b[31m✗ %s\u001b[0m'), $emi));
             }
         }
-        
     }
 
     /**

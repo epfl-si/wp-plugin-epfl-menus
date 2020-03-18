@@ -478,14 +478,26 @@ class _Subscriber extends WPDBModel
     }
 
     static function all_by_publisher_url ($publisher_url) {
+        return static::_where("WHERE publisher_url = %s", $publisher_url);
+    }
+
+    static private function _where ($where_clause_trusted = NULL, $where_value = NULL) {
+        $select = "SELECT id, publisher_url, subscriber_id, callback_url,
+                 UNIX_TIMESTAMP(last_attempt) AS last_attempt, UNIX_TIMESTAMP(failing_since) AS failing_since
+                 FROM %T";
+
+        if ($where_clause) {
+            return static::_hydrate(static::get_results("$select $where_clause_trusted",
+                                                        $where_value));
+        } else {
+            return static::_hydrate(static::get_results($select));
+        }
+    }
+
+    static private function _hydrate ($db_lines) {
         $thisclass = get_called_class();
         $objects = array();
-        foreach (static::get_results(
-                "SELECT id, publisher_url, subscriber_id, callback_url,
-                 UNIX_TIMESTAMP(last_attempt) AS last_attempt, UNIX_TIMESTAMP(failing_since) AS failing_since
-                 FROM %T
-                 WHERE publisher_url = %s",
-                $publisher_url) as $db_line) {
+        foreach ($db_lines as $db_line) {
             $objects[] = new $thisclass($db_line->id, $db_line);
         }
         return $objects;
