@@ -18,7 +18,7 @@ use \EPFL\Menus\ExternalMenuItem;
 require_once(__DIR__ . '/lib/pubsub.php');
 use function \EPFL\Pubsub\ping_all_subscribers;
 
-function log_success ($details) {
+function log_success ($details = NULL) {
     if ($details) {
         WP_CLI::log(sprintf('✓ %s', $details));
     } else {
@@ -26,7 +26,7 @@ function log_success ($details) {
     }
 }
 
-function log_failure ($details) {
+function log_failure ($details = NULL) {
     if ($details) {
         WP_CLI::log(sprintf('\u001b[31m✗ %s\u001b[0m', $details));
     } else {
