@@ -362,8 +362,9 @@ abstract class TypedPost extends Post
 
     function _belongs ()
     {
-        return ($this->wp_post()->post_type ===
-                get_called_class()::get_post_type());
+        return ($this->wp_post() and
+                ($this->wp_post()->post_type ===
+                 get_called_class()::get_post_type()));
     }
 
     /**
