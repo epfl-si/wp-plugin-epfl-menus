@@ -1340,11 +1340,25 @@ class ExternalMenuItem extends \EPFL\Model\UniqueKeyTypedPost
 
     function set_remote_menu ($what) {
         $what = MenuItemBag::coerce($what);
-        $this->meta()->set_items_json(json_encode($what->as_list()));
+        $content_menu = json_encode($what->as_list());
+        $me = Site::this_site();
+        $main_root = $me->is_main_root();
+        if ($main_root) {
+          $file_path = $me->htdocs_path . "/epfl-full-menu.json";
+          file_put_contents($file_path, $content_menu);
+        }
+        // CHECK: Est ce que l'on doit encore mettre le menu complet dans la DB ?
+        $this->meta()->set_items_json($content_menu);
     }
 
     function get_remote_menu () {
-        $json = $this->meta()->get_items_json();
+        $me = Site::this_site();
+        $root = $me->root();
+        $file_path = $root->htdocs_path . "/epfl-full-menu.json";
+        $json = file_get_contents($file_path);
+        if (empty( $json )) {
+          $json = $this->meta()->get_items_json();
+        }
         if (! $json) return;
         return new MenuItemBag(json_decode($json));
     }
@@ -1558,9 +1572,8 @@ class MenuItemController extends CustomPostTypeController
     }
 
     static function hook_pubsub ($emi) {
-        $thisclass = get_called_class();
         $emi->add_observer(
-            function($event) use ($thisclass, $emi) {
+            function($event) use ($emi) {
                 set_time_limit(0);
                 foreach (Menu::all_mapped() as $menu) {
                     if ($menu->update($emi)) {
