@@ -45,9 +45,7 @@ class Site {
         {
             if (static::exists("$htdocs/$under_htdocs")) {
                 $thisclass = get_called_class();
-                $that = new $thisclass($under_htdocs);
-                $that->htdocs_path = $htdocs;
-                return $that;
+                return new $thisclass($under_htdocs);
             }
             if (! count($path_components)) {
                 throw new \Error('Unable to find root site from ' . WP_CONTENT_DIR);

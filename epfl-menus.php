@@ -527,7 +527,7 @@ class MenuItemBag
      *
      * _MUTATE_graft() does *not* tolerate ID clashes between $outer and
      * $inner; caller should ->_renumber() first as appropriate.
-     * 
+     *
      * _MUTATE_graft() may mutate (the items of) both $outer and
      * $inner (the former, because it shares them into the return
      * value). Again, caller should ->copy() as appropriate.
@@ -850,7 +850,7 @@ class Menu
             $menu_root_provider_url = Site::root()->get_path();
             if (! $menu_root_provider_url) return;
         }
-        
+
         $emi = ExternalMenuItem::find(array(
             'site_url'       => $menu_root_provider_url,
             'remote_slug'    => $theme_slug
@@ -1168,7 +1168,7 @@ class ExternalMenuItem extends \EPFL\Model\UniqueKeyTypedPost
 
     /**
      * Get the URN of this independent menu item, or NULL if this item is not independent
-     * 
+     *
      * This shares the same data slot as @link get_rest_url.
      */
     function get_urn () {
@@ -1340,26 +1340,26 @@ class ExternalMenuItem extends \EPFL\Model\UniqueKeyTypedPost
 
     function set_remote_menu ($what) {
         $what = MenuItemBag::coerce($what);
-        $content_menu = json_encode($what->as_list());
-        $me = Site::this_site();
-        $main_root = $me->is_main_root();
-        if ($main_root) {
-          $file_path = $me->htdocs_path . "/epfl-full-menu.json";
-          file_put_contents($file_path, $content_menu);
+
+        $current_external_menu_entry_url = $this->get_site_url();
+
+        if ($current_external_menu_entry_url != "/") {
+            $this->meta()->set_items_json(json_encode($what->as_list()));
         }
-        // CHECK: Est ce que l'on doit encore mettre le menu complet dans la DB ?
-        $this->meta()->set_items_json($content_menu);
     }
 
     function get_remote_menu () {
-        $me = Site::this_site();
-        $root = $me->root();
-        $file_path = $root->htdocs_path . "/epfl-full-menu.json";
-        $json = file_get_contents($file_path);
-        if (empty( $json )) {
-          $json = $this->meta()->get_items_json();
+        $current_external_menu_entry_url = $this->get_site_url();
+        $json = "";
+
+        if ($current_external_menu_entry_url == "/") {
+            $file_path = "/srv/test/wp-httpd/htdocs/epfl-full-menu.json";
+            $json = file_get_contents($file_path);
+        } else {
+            $json = $this->meta()->get_items_json();
         }
-        if (! $json) return;
+
+        if (empty($json)) return;
         return new MenuItemBag(json_decode($json));
     }
 
@@ -1576,8 +1576,11 @@ class MenuItemController extends CustomPostTypeController
             function($event) use ($emi) {
                 set_time_limit(0);
                 foreach (Menu::all_mapped() as $menu) {
+                    # dont update root
                     if ($menu->update($emi)) {
-                        MenuRESTController::menu_changed($menu, $event);
+                        if ($emi->get_site_url() != "/") {
+                            MenuRESTController::menu_changed($menu, $event);
+                        }
                     }
                 }
             });
@@ -1995,7 +1998,9 @@ class MenuFrontendController
                 $bag = $bag->mimic_current($items_orig);
             }
 
-            return $bag->trim_external()->as_list();
+            $bag_as_list = $bag->trim_external()->as_list();
+
+            return $bag_as_list;
         } else {
             return $items_orig;
         }
@@ -2037,7 +2042,7 @@ class MenuFrontendController
         if (Site::this_site()->is_main_root()) {
             return true;
         }
-        
+
         $menu = Menu::by_theme_location($theme_location);
         return $menu && $menu->has_root_menu($theme_location);
     }
@@ -2065,7 +2070,7 @@ class MenuFrontendController
 MenuFrontendController::hook();
 
 
-if ( defined( 'WP_CLI' ) && WP_CLI ) 
+if ( defined( 'WP_CLI' ) && WP_CLI )
 {
     require_once __DIR__ . '/wpcli.php';
 }
