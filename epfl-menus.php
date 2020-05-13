@@ -669,7 +669,7 @@ class Menu
      */
     static function all_mapped () {
         $all = array();
-        foreach (MenuMapEntry::all() as $entry) {
+        foreach (static::iterate_mappings as $entry => $menu) {
             $menu = $entry->get_menu();
             if (! array_key_exists($menu->get_term_id(), $all)) {
                 $all[$menu->get_term_id()] = $menu;
@@ -678,9 +678,12 @@ class Menu
         return array_values($all);
     }
 
-    static function all_mapped () {
+    static function iterate_mappings () {
         foreach (MenuMapEntry::all() as $entry) {
             $menu = $entry->get_menu();
+            if (! array_key_exists($menu->get_term_id(), $all)) {
+                yield $entry => $menu;
+            }
         }
     }
 
