@@ -527,7 +527,7 @@ class MenuItemBag
      *
      * _MUTATE_graft() does *not* tolerate ID clashes between $outer and
      * $inner; caller should ->_renumber() first as appropriate.
-     * 
+     *
      * _MUTATE_graft() may mutate (the items of) both $outer and
      * $inner (the former, because it shares them into the return
      * value). Again, caller should ->copy() as appropriate.
@@ -850,7 +850,7 @@ class Menu
             $menu_root_provider_url = Site::root()->get_path();
             if (! $menu_root_provider_url) return;
         }
-        
+
         $emi = ExternalMenuItem::find(array(
             'site_url'       => $menu_root_provider_url,
             'remote_slug'    => $theme_slug
@@ -1168,7 +1168,7 @@ class ExternalMenuItem extends \EPFL\Model\UniqueKeyTypedPost
 
     /**
      * Get the URN of this independent menu item, or NULL if this item is not independent
-     * 
+     *
      * This shares the same data slot as @link get_rest_url.
      */
     function get_urn () {
@@ -1564,7 +1564,16 @@ class MenuItemController extends CustomPostTypeController
                 set_time_limit(0);
                 foreach (Menu::all_mapped() as $menu) {
                     if ($menu->update($emi)) {
-                        MenuRESTController::menu_changed($menu, $event);
+                        if (Site::this_site()->is_main_root()) {
+                            #TODO: set a dynamic name by # $menu->{get_theme_location}(), language
+                            $file_path = "/srv/test/wp-httpd/htdocs/epfl-full-menu.json";
+
+                            $bag = $menu->get_stitched_down_tree()->as_list();
+
+                            file_put_contents($file_path, json_encode($bag));
+                        } else {
+                            MenuRESTController::menu_changed($menu, $event);
+                        }
                     }
                 }
             });
@@ -2024,7 +2033,7 @@ class MenuFrontendController
         if (Site::this_site()->is_main_root()) {
             return true;
         }
-        
+
         $menu = Menu::by_theme_location($theme_location);
         return $menu && $menu->has_root_menu($theme_location);
     }
@@ -2052,7 +2061,7 @@ class MenuFrontendController
 MenuFrontendController::hook();
 
 
-if ( defined( 'WP_CLI' ) && WP_CLI ) 
+if ( defined( 'WP_CLI' ) && WP_CLI )
 {
     require_once __DIR__ . '/wpcli.php';
 }
