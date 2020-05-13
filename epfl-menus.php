@@ -1578,7 +1578,14 @@ class MenuItemController extends CustomPostTypeController
                 foreach (Menu::all_mapped() as $menu) {
                     # dont update root
                     if ($menu->update($emi)) {
-                        if ($emi->get_site_url() != "/") {
+                        if (Site::this_site()->is_main_root()) {
+                            #TODO: set a dynamic name by # $menu->{get_theme_location}(), language
+                            $file_path = "/srv/test/wp-httpd/htdocs/epfl-full-menu.json";
+
+                            $bag = $menu->get_stitched_down_tree()->as_list();
+
+                            file_put_contents($file_path, json_encode($bag));
+                        } else {
                             MenuRESTController::menu_changed($menu, $event);
                         }
                     }
