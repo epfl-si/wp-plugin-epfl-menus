@@ -669,22 +669,13 @@ class Menu
      */
     static function all_mapped () {
         $all = array();
-        foreach (static::iterate_mappings as $entry => $menu) {
+        foreach (MenuMapEntry::all() as $entry) {
             $menu = $entry->get_menu();
             if (! array_key_exists($menu->get_term_id(), $all)) {
                 $all[$menu->get_term_id()] = $menu;
             }
         }
         return array_values($all);
-    }
-
-    static function iterate_mappings () {
-        foreach (MenuMapEntry::all() as $entry) {
-            $menu = $entry->get_menu();
-            if (! array_key_exists($menu->get_term_id(), $all)) {
-                yield $entry => $menu;
-            }
-        }
     }
 
     /**
@@ -1357,15 +1348,18 @@ class ExternalMenuItem extends \EPFL\Model\UniqueKeyTypedPost
         $json = "";
 
         if ($current_external_menu_entry_url == "/") {
-            $file_path = "/srv/test/wp-httpd/htdocs/epfl-full-menu.json";
-            $json = file_get_contents($file_path);
+            $slug = $this->meta()->get_remote_slug();
+            $rest_url = $this->meta()->get_rest_url();
+            $language = substr($rest_url, -2);
+            $disk_menu = OnDiskMenu::by_slug_and_language($slug, $language);
+            $json = $disk_menu->read();
         } else {
-            $json = $this->meta()->get_items_json();
+            $json = json_decode($this->meta()->get_items_json());
         }
 
         if (empty($json)) return;
 
-        return new MenuItemBag(json_decode($json));
+        return new MenuItemBag($json);
     }
 
     function get_sync_status () {
@@ -1612,23 +1606,17 @@ class MenuItemController extends CustomPostTypeController
     }
 
     static function hook_pubsub ($emi) {
-        $thisclass = get_called_class();
+
         $emi->add_observer(
-            function($event) use ($thisclass, $emi) {
+            function($event) use ($emi) {
                 set_time_limit(0);
-                foreach (Menu::all_mapped() as $menu) {
+                foreach (MenuMapEntry::all() as $entry) {
+                    $menu = $entry->get_menu();
                     if ($menu->update($emi)) {
                         if (Site::this_site()->is_main_root()) {
-                            #TODO: set a dynamic name by # $menu->{get_theme_location}(), language
-
-                            $file_path = "/srv/test/wp-httpd/htdocs/epfl-full-menu.json";
-                            $language;
-
-                            $theme_location = Menu::by_theme_location('top');
-
-                            $bag = $menu->get_stitched_down_tree()->as_list();
-
-                            file_put_contents($file_path, json_encode($bag));
+                            $disk_menu = OnDiskMenu::by_entry($entry);
+                            $item_list = $menu->get_stitched_down_tree()->as_list();
+                            $disk_menu->write($item_list);
                         } else {
                             MenuRESTController::menu_changed($menu, $event);
                         }
