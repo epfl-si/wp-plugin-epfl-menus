@@ -1391,6 +1391,41 @@ class ExternalMenuItem extends \EPFL\Model\UniqueKeyTypedPost
 }
 
 /**
+ * A menu that is shared via disk (NFS).
+ */
+class OnDiskMenu {
+    static function by_entry ($entry) {
+        $thisclass = get_called_class();
+        return new $thisclass($entry->theme_location, $entry->language);
+    }
+
+    static function by_slug_and_language ($slug, $language) {
+        $thisclass = get_called_class();
+        return new $thisclass($slug, $language);
+    }
+
+    /* "private" */ function __construct ($slug, $language) {
+        $this->slug = $slug;
+        $this->language = $language;
+    }
+
+    private function _get_path () {
+        // TODO: in fact, it depends on a lot of things e.g. the NFS
+        // path, and whether there is a .ini file up in the tree (e.g.
+        // for labs)
+        return "/srv/test/wp-httpd/htdocs/epfl-full-". $this->slug ."-". $this->language ."-menu.json";
+    }
+
+    public function write ($item_list) {
+        file_put_contents($this->_get_path(), json_encode($item_list));
+    }
+
+    public function read () {
+        return json_decode(file_get_contents($this->_get_path()));
+    }
+}
+
+/**
  * Enumerate menus over the REST API
  *
  * Enumeration is independent of languages (or lack thereof) i.e.
