@@ -678,6 +678,12 @@ class Menu
         return array_values($all);
     }
 
+    static function all_mapped () {
+        foreach (MenuMapEntry::all() as $entry) {
+            $menu = $entry->get_menu();
+        }
+    }
+
     /**
      * @return A site-wide unique integer ID for this Menu
      */
@@ -1344,8 +1350,18 @@ class ExternalMenuItem extends \EPFL\Model\UniqueKeyTypedPost
     }
 
     function get_remote_menu () {
-        $json = $this->meta()->get_items_json();
-        if (! $json) return;
+        $current_external_menu_entry_url = $this->get_site_url();
+        $json = "";
+
+        if ($current_external_menu_entry_url == "/") {
+            $file_path = "/srv/test/wp-httpd/htdocs/epfl-full-menu.json";
+            $json = file_get_contents($file_path);
+        } else {
+            $json = $this->meta()->get_items_json();
+        }
+
+        if (empty($json)) return;
+
         return new MenuItemBag(json_decode($json));
     }
 
@@ -1566,7 +1582,11 @@ class MenuItemController extends CustomPostTypeController
                     if ($menu->update($emi)) {
                         if (Site::this_site()->is_main_root()) {
                             #TODO: set a dynamic name by # $menu->{get_theme_location}(), language
+
                             $file_path = "/srv/test/wp-httpd/htdocs/epfl-full-menu.json";
+                            $language;
+
+                            $theme_location = Menu::by_theme_location('top');
 
                             $bag = $menu->get_stitched_down_tree()->as_list();
 
