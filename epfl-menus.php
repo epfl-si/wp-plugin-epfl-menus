@@ -1615,7 +1615,7 @@ class MenuItemController extends CustomPostTypeController
                     if ($menu->update($emi)) {
                         if (Site::this_site()->is_main_root()) {
                             $disk_menu = OnDiskMenu::by_entry($entry);
-                            $item_list = $menu->get_stitched_down_tree()->as_list();
+                            $item_list = $menu->get_stitched_down_tree()->export_external()->as_list();
                             $disk_menu->write($item_list);
                         } else {
                             MenuRESTController::menu_changed($menu, $event);
