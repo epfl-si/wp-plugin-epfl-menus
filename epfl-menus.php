@@ -1350,9 +1350,13 @@ class ExternalMenuItem extends \EPFL\Model\UniqueKeyTypedPost
         if ($current_external_menu_entry_url == "/") {
             $slug = $this->meta()->get_remote_slug();
             $rest_url = $this->meta()->get_rest_url();
-            $language = substr($rest_url, -2);
-            $disk_menu = OnDiskMenu::by_slug_and_language($slug, $language);
-            $json = $disk_menu->read();
+            if (empty($rest_url)) {
+                error_log(sprintf("plugin-epfl-menus: ExternalMenu '/'->rest_url must not be empty."));
+            } else {
+                $language = substr($rest_url, -2);
+                $disk_menu = OnDiskMenu::by_slug_and_language($slug, $language);
+                $json = $disk_menu->read();
+            }
         } else {
             $json = json_decode($this->meta()->get_items_json());
         }
