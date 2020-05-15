@@ -1407,7 +1407,8 @@ class OnDiskMenu {
         // TODO: in fact, it depends on a lot of things e.g. the NFS
         // path, and whether there is a .ini file up in the tree (e.g.
         // for labs)
-        return "/srv/test/wp-httpd/htdocs/epfl-full-". $this->slug ."-". $this->language ."-menu.json";
+        $htdocs_path = Site::this_site()->htdocs_path;
+        return $htdocs_path . "/epfl-full-". $this->slug ."-". $this->language ."-menu.json";
     }
 
     public function write ($item_list) {
