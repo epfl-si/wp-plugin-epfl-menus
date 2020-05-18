@@ -2,7 +2,7 @@
 /*
  * Plugin Name: EPFL Menus
  * Description: Stitch menus across sites
- * Version:     1.0
+ * Version:     1.1
  *
  */
 
