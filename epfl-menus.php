@@ -1347,7 +1347,7 @@ class ExternalMenuItem extends \EPFL\Model\UniqueKeyTypedPost
         $current_external_menu_entry_url = $this->get_site_url();
         $json = "";
 
-        if ($current_external_menu_entry_url == "/") {
+        if ($current_external_menu_entry_url == "/" || $current_external_menu_entry_url == "https://www.epfl.ch") {
             $slug = $this->meta()->get_remote_slug();
             $rest_url = $this->meta()->get_rest_url();
             if (empty($rest_url)) {
