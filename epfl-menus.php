@@ -447,6 +447,33 @@ class MenuItemBag
                 $item->rest_url = $emi->get_rest_url();
                 $item->urn = $emi->get_urn();
             }
+
+            // Filter out unneeded data from the list anyway
+            // a sample has gone from 2.3 MB to ... 973 KB
+            unset($item->post_content);
+            unset($item->post_author);
+            unset($item->post_title);
+            unset($item->post_mime_type);
+            unset($item->post_date);
+            unset($item->post_date_gmt);
+            unset($item->post_password);
+            unset($item->filter);
+            unset($item->post_excerpt);
+            unset($item->comment_status);
+            unset($item->ping_status);
+            unset($item->to_ping);
+            unset($item->pinged);
+            unset($item->post_modified);
+            unset($item->classes);
+            unset($item->xfn);
+            unset($item->attr_title);
+            unset($item->target);
+            unset($item->type);
+            unset($item->post_modified_gmt);
+            unset($item->post_content_filtered);
+            unset($item->comment_count);
+            unset($item->description);
+            unset($item->post_modified);
             return $item;
         });
     }
