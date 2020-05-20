@@ -1347,7 +1347,7 @@ class ExternalMenuItem extends \EPFL\Model\UniqueKeyTypedPost
         $current_external_menu_entry_url = $this->get_site_url();
         $json = "";
 
-        if ($current_external_menu_entry_url == "/" || $current_external_menu_entry_url == "https://www.epfl.ch") {
+        if ($current_external_menu_entry_url == "/") {
             $slug = $this->meta()->get_remote_slug();
             $rest_url = $this->meta()->get_rest_url();
             if (empty($rest_url)) {
@@ -1412,7 +1412,14 @@ class OnDiskMenu {
         // path, and whether there is a .ini file up in the tree (e.g.
         // for labs)
         $htdocs_path = Site::this_site()->htdocs_path;
-        return $htdocs_path . "/epfl-full-". $this->slug ."-". $this->language ."-menu.json";
+        return $htdocs_path . "/" . $this->get_filename();
+    }
+
+    public function get_filename () {
+        // TODO: in fact, it depends on a lot of things e.g. the NFS
+        // path, and whether there is a .ini file up in the tree (e.g.
+        // for labs)
+        return "epfl-full-". $this->slug ."-". $this->language ."-menu.json";
     }
 
     public function write ($item_list) {
@@ -1533,10 +1540,11 @@ class MenuRESTController
      * Shall be called whenever $menu changes (from the point
      * of view of @link get_menu)
      */
-    static function menu_changed ($menu, $causality = NULL) {
+    static function menu_changed ($menu, $causality = NULL, $only_urns = False) {
         $publisher = static::_get_publish_controller($menu);
+
         if ($causality) {
-            $publisher->forward($causality);
+            $publisher->forward($causality, $only_urns);
         } else {
             $publisher->initiate();
         }
@@ -1621,6 +1629,17 @@ class MenuItemController extends CustomPostTypeController
                         if (Site::this_site()->is_main_root()) {
                             $disk_menu = OnDiskMenu::by_entry($entry);
                             $item_list = $menu->get_stitched_down_tree()->export_external()->as_list();
+                            $disk_menu->write($item_list);
+
+                            # then propagate to "from a different pod" subscribers only
+                            MenuRESTController::menu_changed($menu, $event, True);
+                        }
+                        elseif (!Site::this_site()->is_main_root() &&
+                            Site::this_site()->is_root() &&
+                            $emi->get_site_url() == "/") {  # meaning we are in a root but not the main, certainly a lab like site
+
+                            $disk_menu = OnDiskMenu::by_entry($entry);
+                            $item_list = $menu->get_fully_stitched_tree($entry)->export_external()->as_list();
                             $disk_menu->write($item_list);
                         } else {
                             MenuRESTController::menu_changed($menu, $event);
