@@ -523,7 +523,7 @@ class _Subscriber extends WPDBModel
         #return static::_where("WHERE publisher_url = %s AND subscriber_id LIKE '%@https://www.epfl.ch/labs'", $publisher_url);
 
         global $wpdb;
-        $select = "SELECT id, publisher_url, subscriber_id, callback_url, UNIX_TIMESTAMP(last_attempt) AS last_attempt, UNIX_TIMESTAMP(failing_since) AS failing_since FROM epfl_pubsub_subscribers WHERE publisher_url = '". $publisher_url .  "' AND subscriber_id LIKE '%@http://wp-httpd/labs'";
+        $select = "SELECT id, publisher_url, subscriber_id, callback_url, UNIX_TIMESTAMP(last_attempt) AS last_attempt, UNIX_TIMESTAMP(failing_since) AS failing_since FROM epfl_pubsub_subscribers WHERE publisher_url = '". $publisher_url .  "' AND subscriber_id LIKE '%@https://www.epfl.ch/labs'";
         $results = $wpdb->get_results($select);
         return $results;
     }
