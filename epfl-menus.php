@@ -1636,7 +1636,7 @@ class MenuItemController extends CustomPostTypeController
                         }
                         elseif (!Site::this_site()->is_main_root() &&
                             Site::this_site()->is_root() &&
-                            $emi->get_site_url() == "/") {  # meaning we are in a root but not the main, certainly a lab like site
+                            $emi->get_site_url() == "https://www.epfl.ch") {  # meaning we are in a root but not the main, certainly a lab like site
 
                             $disk_menu = OnDiskMenu::by_entry($entry);
                             $item_list = $menu->get_fully_stitched_tree($entry)->export_external()->as_list();
