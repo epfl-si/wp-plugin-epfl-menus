@@ -1639,7 +1639,7 @@ class MenuItemController extends CustomPostTypeController
                             $emi->get_site_url() == "https://www.epfl.ch") {  # meaning we are in a root but not the main, certainly a lab like site
 
                             $disk_menu = OnDiskMenu::by_entry($entry);
-                            $item_list = $menu->get_fully_stitched_tree($entry)->export_external()->as_list();
+                            $item_list = $menu->get_stitched_down_tree()->export_external()->as_list();
                             $disk_menu->write($item_list);
                         } else {
                             MenuRESTController::menu_changed($menu, $event);
