@@ -375,9 +375,9 @@ class PublishController
      * Avoid loops by doing nothing if $event has already been seen
      * by any given subscriber.
      */
-    public function forward ($event) {
+    public function forward ($event, $only_urns = False) {
         _Events::action_forward($this->subscribe_uri, $event);
-        $this->_do_forward($event);
+        $this->_do_forward($event, $only_urns);
     }
 
     /**
@@ -394,9 +394,14 @@ class PublishController
      *
      * @param EPFL\Pubsub\Causality $event
      */
-    public function _do_forward ($event) {
-        foreach (_Subscriber::all_by_publisher_url($this->subscribe_uri)
-                 as $sub) {
+    public function _do_forward ($event, $only_urns = False) {
+        if ($only_urns) {
+            $subscribers = _Subscriber::urns_by_publisher_url($this->subscribe_uri);
+        } else {
+            $subscribers = _Subscriber::all_by_publisher_url($this->subscribe_uri);
+        }
+
+        foreach ($subscribers as $sub) {
             if ($sub->has_seen($event)) continue;
             $sub->attempt_post($sub->get_callback_url(), $event->marshall());
             _Events::forward_sent($this->subscribe_uri, $event);
@@ -512,11 +517,23 @@ class _Subscriber extends WPDBModel
         return static::_where("WHERE publisher_url = %s", $publisher_url);
     }
 
+    static function urns_by_publisher_url ($publisher_url) {
+        #FIXME: should not be a static value of urned subscribers,
+        # we know that urns (like labs) is subscriber_id='menu/43@https://www.epfl.ch/labs'
+        #return static::_where("WHERE publisher_url = %s AND subscriber_id LIKE '%@https://www.epfl.ch/labs'", $publisher_url);
+
+        global $wpdb;
+        $select = "SELECT id, publisher_url, subscriber_id, callback_url, UNIX_TIMESTAMP(last_attempt) AS last_attempt, UNIX_TIMESTAMP(failing_since) AS failing_since FROM epfl_pubsub_subscribers WHERE publisher_url = '". $publisher_url .  "' AND subscriber_id LIKE '%@https://www.epfl.ch/labs'";
+        $results = $wpdb->get_results($select);
+        return $results;
+    }
+
     static private function _where ($where_clause_trusted = NULL, $where_value = NULL) {
         $select = "SELECT id, publisher_url, subscriber_id, callback_url,
                  UNIX_TIMESTAMP(last_attempt) AS last_attempt, UNIX_TIMESTAMP(failing_since) AS failing_since
                  FROM %T";
 
+        #FIXME: $where_clause is not defined
         if ($where_clause) {
             return static::_hydrate(static::get_results("$select $where_clause_trusted",
                                                         $where_value));

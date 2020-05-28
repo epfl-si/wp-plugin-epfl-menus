@@ -2,7 +2,7 @@
 /*
  * Plugin Name: EPFL Menus
  * Description: Stitch menus across sites
- * Version:     1.0
+ * Version:     1.1
  *
  */
 
@@ -527,7 +527,7 @@ class MenuItemBag
      *
      * _MUTATE_graft() does *not* tolerate ID clashes between $outer and
      * $inner; caller should ->_renumber() first as appropriate.
-     * 
+     *
      * _MUTATE_graft() may mutate (the items of) both $outer and
      * $inner (the former, because it shares them into the return
      * value). Again, caller should ->copy() as appropriate.
@@ -850,7 +850,7 @@ class Menu
             $menu_root_provider_url = Site::root()->get_path();
             if (! $menu_root_provider_url) return;
         }
-        
+
         $emi = ExternalMenuItem::find(array(
             'site_url'       => $menu_root_provider_url,
             'remote_slug'    => $theme_slug
@@ -1168,7 +1168,7 @@ class ExternalMenuItem extends \EPFL\Model\UniqueKeyTypedPost
 
     /**
      * Get the URN of this independent menu item, or NULL if this item is not independent
-     * 
+     *
      * This shares the same data slot as @link get_rest_url.
      */
     function get_urn () {
@@ -1344,9 +1344,26 @@ class ExternalMenuItem extends \EPFL\Model\UniqueKeyTypedPost
     }
 
     function get_remote_menu () {
-        $json = $this->meta()->get_items_json();
-        if (! $json) return;
-        return new MenuItemBag(json_decode($json));
+        $current_external_menu_entry_url = $this->get_site_url();
+        $json = "";
+
+        if ($current_external_menu_entry_url == "/" || $current_external_menu_entry_url == "https://www.epfl.ch") {
+            $slug = $this->meta()->get_remote_slug();
+            $rest_url = $this->meta()->get_rest_url();
+            if (empty($rest_url)) {
+                error_log(sprintf("plugin-epfl-menus: ExternalMenu '/'->rest_url must not be empty."));
+            } else {
+                $language = substr($rest_url, -2);
+                $disk_menu = OnDiskMenu::by_slug_and_language($slug, $language);
+                $json = $disk_menu->read();
+            }
+        } else {
+            $json = json_decode($this->meta()->get_items_json());
+        }
+
+        if (empty($json)) return;
+
+        return new MenuItemBag($json);
     }
 
     function get_sync_status () {
@@ -1368,6 +1385,49 @@ class ExternalMenuItem extends \EPFL\Model\UniqueKeyTypedPost
         return sprintf('<ExternalMenuItem(id=%d name="%s")>',
                        $this->ID,
                        $this->wp_post()->post_title);
+    }
+}
+
+/**
+ * A menu that is shared via disk (NFS).
+ */
+class OnDiskMenu {
+    static function by_entry ($entry) {
+        $thisclass = get_called_class();
+        return new $thisclass($entry->theme_location, $entry->language);
+    }
+
+    static function by_slug_and_language ($slug, $language) {
+        $thisclass = get_called_class();
+        return new $thisclass($slug, $language);
+    }
+
+    /* "private" */ function __construct ($slug, $language) {
+        $this->slug = $slug;
+        $this->language = $language;
+    }
+
+    private function _get_path () {
+        // TODO: in fact, it depends on a lot of things e.g. the NFS
+        // path, and whether there is a .ini file up in the tree (e.g.
+        // for labs)
+        $htdocs_path = Site::this_site()->htdocs_path;
+        return $htdocs_path . "/" . $this->get_filename();
+    }
+
+    public function get_filename () {
+        // TODO: in fact, it depends on a lot of things e.g. the NFS
+        // path, and whether there is a .ini file up in the tree (e.g.
+        // for labs)
+        return "epfl-full-". $this->slug ."-". $this->language ."-menu.json";
+    }
+
+    public function write ($item_list) {
+        file_put_contents($this->_get_path(), json_encode($item_list));
+    }
+
+    public function read () {
+        return json_decode(file_get_contents($this->_get_path()));
     }
 }
 
@@ -1480,10 +1540,11 @@ class MenuRESTController
      * Shall be called whenever $menu changes (from the point
      * of view of @link get_menu)
      */
-    static function menu_changed ($menu, $causality = NULL) {
+    static function menu_changed ($menu, $causality = NULL, $only_urns = False) {
         $publisher = static::_get_publish_controller($menu);
+
         if ($causality) {
-            $publisher->forward($causality);
+            $publisher->forward($causality, $only_urns);
         } else {
             $publisher->initiate();
         }
@@ -1558,13 +1619,31 @@ class MenuItemController extends CustomPostTypeController
     }
 
     static function hook_pubsub ($emi) {
-        $thisclass = get_called_class();
+
         $emi->add_observer(
-            function($event) use ($thisclass, $emi) {
+            function($event) use ($emi) {
                 set_time_limit(0);
-                foreach (Menu::all_mapped() as $menu) {
+                foreach (MenuMapEntry::all() as $entry) {
+                    $menu = $entry->get_menu();
                     if ($menu->update($emi)) {
-                        MenuRESTController::menu_changed($menu, $event);
+                        if (Site::this_site()->is_main_root()) {
+                            $disk_menu = OnDiskMenu::by_entry($entry);
+                            $item_list = $menu->get_stitched_down_tree()->export_external()->as_list();
+                            $disk_menu->write($item_list);
+
+                            # then propagate to "from a different pod" subscribers only
+                            MenuRESTController::menu_changed($menu, $event, True);
+                        }
+                        elseif (!Site::this_site()->is_main_root() &&
+                            Site::this_site()->is_root() &&
+                            $emi->get_site_url() == "https://www.epfl.ch") {  # meaning we are in a root but not the main, certainly a lab like site
+
+                            $disk_menu = OnDiskMenu::by_entry($entry);
+                            $item_list = $menu->get_stitched_down_tree()->export_external()->as_list();
+                            $disk_menu->write($item_list);
+                        } else {
+                            MenuRESTController::menu_changed($menu, $event);
+                        }
                     }
                 }
             });
@@ -2024,7 +2103,7 @@ class MenuFrontendController
         if (Site::this_site()->is_main_root()) {
             return true;
         }
-        
+
         $menu = Menu::by_theme_location($theme_location);
         return $menu && $menu->has_root_menu($theme_location);
     }
@@ -2052,7 +2131,7 @@ class MenuFrontendController
 MenuFrontendController::hook();
 
 
-if ( defined( 'WP_CLI' ) && WP_CLI ) 
+if ( defined( 'WP_CLI' ) && WP_CLI )
 {
     require_once __DIR__ . '/wpcli.php';
 }
