@@ -534,9 +534,17 @@ class _Subscriber extends WPDBModel
                  FROM %T";
 
         #FIXME: $where_clause is not defined
-        if ($where_clause) {
-            return static::_hydrate(static::get_results("$select $where_clause_trusted",
-                                                        $where_value));
+        if ($where_clause_trusted) {
+
+            $query = "$select $where_clause_trusted";
+            error_log(WP_CONTENT_DIR  . " query :" . $query);
+            error_log(WP_CONTENT_DIR  . " where_value :" . $where_value);
+
+            $result = static::_hydrate(static::get_results("$select $where_clause_trusted",
+                $where_value));
+            error_log(WP_CONTENT_DIR  . " result : " . var_export($result, true));
+
+            return $result;
         } else {
             return static::_hydrate(static::get_results($select));
         }
