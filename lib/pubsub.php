@@ -533,10 +533,9 @@ class _Subscriber extends WPDBModel
                  UNIX_TIMESTAMP(last_attempt) AS last_attempt, UNIX_TIMESTAMP(failing_since) AS failing_since
                  FROM %T";
 
-        #FIXME: $where_clause is not defined
-        if ($where_clause) {
+        if ($where_clause_trusted) {
             return static::_hydrate(static::get_results("$select $where_clause_trusted",
-                                                        $where_value));
+                $where_value));
         } else {
             return static::_hydrate(static::get_results($select));
         }
