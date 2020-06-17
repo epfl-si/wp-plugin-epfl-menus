@@ -454,7 +454,7 @@ class MenuItemBag
                 $item->urn = $emi->get_urn();
             }
 
-            // Filter out unneeded data from the item
+            // Weed out fields we don't use from exported JSON, for efficiency
             foreach (self::$attributes_to_filter_out_on_export as $attribute) {
                 unset($item->$attribute);
             }
