@@ -85,6 +85,12 @@ class TreeLoopError extends TreeError {
  */
 class MenuItemBag
 {
+    # values we don't have any use on an item when we export it.
+    public static $attributes_to_filter_out_on_export = ["post_content", "post_author", "post_title", "post_mime_type", "post_date", "post_date_gmt",
+        "post_password", "filter", "post_excerpt", "comment_status", "ping_status", "to_ping", "pinged",
+        "post_modified", "classes", "xfn", "attr_title", "target", "type", "post_modified_gmt",
+        "post_content_filtered", "comment_count", "description", "post_modified"];
+
     function __construct ($items, $hide_tree_problems=false) {
         if (! is_array($items)) {
             throw new \Error('Bad argument: ' . var_export($items, true));
@@ -447,6 +453,12 @@ class MenuItemBag
                 $item->rest_url = $emi->get_rest_url();
                 $item->urn = $emi->get_urn();
             }
+
+            // Weed out fields we don't use from exported JSON, for efficiency
+            foreach (self::$attributes_to_filter_out_on_export as $attribute) {
+                unset($item->$attribute);
+            }
+
             return $item;
         });
     }
