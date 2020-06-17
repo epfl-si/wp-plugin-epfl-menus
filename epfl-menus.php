@@ -85,6 +85,12 @@ class TreeLoopError extends TreeError {
  */
 class MenuItemBag
 {
+    # values we don't have any use on an item when we export it.
+    public static $attributes_to_filter_out_on_export = ["post_content", "post_author", "post_title", "post_mime_type", "post_date", "post_date_gmt",
+        "post_password", "filter", "post_excerpt", "comment_status", "ping_status", "to_ping", "pinged",
+        "post_modified", "classes", "xfn", "attr_title", "target", "type", "post_modified_gmt",
+        "post_content_filtered", "comment_count", "description", "post_modified"];
+
     function __construct ($items, $hide_tree_problems=false) {
         if (! is_array($items)) {
             throw new \Error('Bad argument: ' . var_export($items, true));
@@ -448,32 +454,11 @@ class MenuItemBag
                 $item->urn = $emi->get_urn();
             }
 
-            // Filter out unneeded data from the list anyway
-            // a sample has gone from 2.3 MB to ... 973 KB
-            unset($item->post_content);
-            unset($item->post_author);
-            unset($item->post_title);
-            unset($item->post_mime_type);
-            unset($item->post_date);
-            unset($item->post_date_gmt);
-            unset($item->post_password);
-            unset($item->filter);
-            unset($item->post_excerpt);
-            unset($item->comment_status);
-            unset($item->ping_status);
-            unset($item->to_ping);
-            unset($item->pinged);
-            unset($item->post_modified);
-            unset($item->classes);
-            unset($item->xfn);
-            unset($item->attr_title);
-            unset($item->target);
-            unset($item->type);
-            unset($item->post_modified_gmt);
-            unset($item->post_content_filtered);
-            unset($item->comment_count);
-            unset($item->description);
-            unset($item->post_modified);
+            // Filter out unneeded data from the item
+            foreach (self::$attributes_to_filter_out_on_export as $attribute) {
+                unset($item->$attribute);
+            }
+
             return $item;
         });
     }
