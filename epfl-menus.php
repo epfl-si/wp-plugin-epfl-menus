@@ -503,12 +503,14 @@ class MenuItemBag
     private function _MUTATE_reset_current_ancestry_status ($item) {
         unset($item->current_item_parent);
         unset($item->current_item_ancestor);
-        $item->classes = array_filter(
-            $item->classes,
-            function($c) {
-                return ($c !== 'current-menu-parent' and
-                        $c != 'current-menu-ancestor');
-            });
+        if ($item->classes) {
+            $item->classes = array_filter(
+                $item->classes,
+                function($c) {
+                    return ($c !== 'current-menu-parent' and
+                            $c != 'current-menu-ancestor');
+                });
+        }
     }
 
     private function _MUTATE_make_parent_of_current ($item) {
