@@ -50,8 +50,12 @@ class EPFLMenusCLICommand extends WP_CLI_Command
 
         WP_CLI::log(___('Enumerating menus in config file...'));
         $local = ExternalMenuItem::load_from_config_file();
-        WP_CLI::log(sprintf(___('... Success, found %d site-configured menus'),
-                            count($local)));
+        if ($local === NULL) {
+            WP_CLI::log(sprintf(___('... Not found')));
+        } else {
+            WP_CLI::log(sprintf(___('... Success, found %d site-configured menus'),
+                                count($local)));
+        }
 
         $all = ExternalMenuItem::all();
         WP_CLI::log(sprintf(___('Refreshing %d instances...'),
