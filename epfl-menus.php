@@ -1266,9 +1266,12 @@ class ExternalMenuItem extends \EPFL\Model\UniqueKeyTypedPost
     static function load_from_wp_site_url ($site_url) {
         $instances = array();
 
+        $our_languages = function_exists("pll_languages_list") ? pll_languages_list() : NULL;
+
         $rest = (new RESTClient())->set_base_uri(
             REST_API::get_entrypoint_url('', $site_url));
         foreach ($rest->GET_JSON("languages") as $lang) {
+            if ($our_languages && ! in_array($lang, $our_languages)) continue;
             try {
                 $menu_descrs = $rest->GET_JSON("menus?lang=$lang");
             } catch (RESTClientError $e) {
