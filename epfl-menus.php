@@ -940,33 +940,6 @@ class Menu
         return false;
     }
 
-    /**
-     * Take into account a (possible) change in $emi
-     *
-     * @return false if we can conservatively ascertain that the
-     *         change in $emi had no effect on "our" tree (in the
-     *         sense of @link get_stitched_down_tree, i.e. the part
-     *         that we are authoritative for); true otherwise
-     */
-    function update ($emi) {
-        // Always trust the caller and attempt to refresh:
-        try {
-            $emi->refresh();
-        } catch (Throwable $t) {  // Non-goal: PHP5 support
-            return false;  // Our tree hasn't changed for sure
-        }
-
-        // Block propagation in case the menu is not listed, in
-        // particular if it is the root menu - that one is of use to
-        // get_fully_stitched_tree() but not get_stitched_down_tree()
-        if (! $this->depends($emi)) return false;
-
-        // We could encache, compare and block null updates here, but
-        // for now this is conservative and good enough
-        // performance-wise:
-        return true;
-    }
-
     function __toString () {
         $thisclass = get_called_class();
 
@@ -1397,15 +1370,19 @@ class ExternalMenuItem extends \EPFL\Model\UniqueKeyTypedPost
     }
 
     function get_remote_menu () {
-        if ($disk_menu = $this->get_on_disk_menu()) {
-            $json = $disk_menu->read();
-        } else {
-            $json = json_decode($this->meta()->get_items_json());
+        $disk_menu = $this->get_on_disk_menu();
+        if (! $disk_menu) {
+            return $this->get_remote_menu_from_meta();
         }
 
+        $json = $disk_menu->read();
         if (empty($json)) return;
 
         return new MenuItemBag($json);
+    }
+
+    function get_remote_menu_from_meta () {
+        return new MenuItemBag(json_decode($this->meta()->get_items_json()));
     }
 
     function get_sync_status () {
@@ -1655,24 +1632,37 @@ class MenuItemController extends CustomPostTypeController
         $emi->add_observer(
             function($event) use ($emi) {
                 set_time_limit(0);
+                try {
+                    $emi->refresh();
+                } catch (Throwable $t) {  // Non-goal: PHP5 support
+                    return;  // Our tree hasn't changed for sure; no propagation needed
+                }
+
+                // Walk connected menus to figure out whether $emi changes one of them.
+                // If so, propagate the changes over both REST and the file system
+                // (if appropriate, i.e. only for the actual root site)
                 foreach (MenuMapEntry::all() as $entry) {
                     $menu = $entry->get_menu();
-                    if ($menu->update($emi)) {
-                        $is_true_root = Site::this_site()->is_main_root();
-                        $is_surrogate_root_subscribed_to_true_root = (
-                            Site::this_site()->is_root() &&
-                            $emi->get_site_url() == "https://www.epfl.ch");  // E.g. /labs
-                        if ($is_true_root || $is_surrogate_root_subscribed_to_true_root) {
-                            $disk_menu = OnDiskMenu::by_entry($entry);
-                            $item_list = $menu->get_stitched_down_tree()->export_external()->as_list();
-                            $disk_menu->write($item_list);
-                            if ($is_true_root) {
-                                MenuRESTController::menu_changed($menu, $event);
-                            }
-                        } else {
-                            MenuRESTController::menu_changed($menu, $event);
+                    if ($menu->depends($emi)) {
+                        MenuRESTController::menu_changed($menu, $event);
+
+                        if (Site::this_site()->is_main_root()) {
+                            // "Master" JSON write: one of the dependencies of the root menu
+                            // just changed; recompute the whole thing and write it to disk.
+                            OnDiskMenu::by_entry($entry)->write(
+                                $menu->get_stitched_down_tree()->export_external()->as_list());
                         }
                     }
+                }
+
+                if ((! Site::this_site()->is_main_root()) &&
+                    Site::this_site()->is_root() &&
+                    $emi->get_site_url() == "https://www.epfl.ch") {
+                    // "Slave" JSON write: if syncing the root menu to
+                    // a non-true root (i.e. /labs), write what we
+                    // received to disk verbatim (don't re-stitch since
+                    // we are not authoritative)
+                    $emi->get_on_disk_menu()->write($emi->get_remote_menu_from_meta());
                 }
             });
     }
