@@ -1350,9 +1350,19 @@ class ExternalMenuItem extends \EPFL\Model\UniqueKeyTypedPost
     }
 
     function resubscribe () {
+        if ($this->get_on_disk_menu()) {
+            // We don't want to subscribe to the root, if we can avoid
+            // the pubsub chatter by reaching directly into the JSON file.
+            if (! $this->_needs_root_subscription()) return;
+        }
         if ($subscribe_url = $this->meta()->get_rest_subscribe_url()) {
             $this->_get_subscribe_controller()->subscribe($subscribe_url);
         }
+    }
+
+    function _needs_root_subscription () {
+        return Site::this_site()->is_root();  // i.e. /labs - Assuming
+        // the real root doesn't attempt to subscribe to itself
     }
 
     function set_remote_menu ($what) {
@@ -1360,10 +1370,18 @@ class ExternalMenuItem extends \EPFL\Model\UniqueKeyTypedPost
         $this->meta()->set_items_json(json_encode($what->as_list()));
     }
 
-    function get_remote_menu () {
+    /**
+     * Returns the @link OnDiskMenu instance that backs this menu.
+     *
+     * This will return NULL except for the "true" root menu, which is
+     * always available on-disk one way or another (i.e.
+     * /srv/www/www.epfl.ch/htdocs/epfl-full-${slug}-${lang}-menu.json,
+     * or
+     * /srv/labs/www.epfl.ch/htdocs/epfl-full-${slug}-${lang}-menu.json
+     * on labs etc.)
+     */
+    function get_on_disk_menu () {
         $current_external_menu_entry_url = $this->get_site_url();
-        $json = "";
-
         if ($current_external_menu_entry_url == "/" || $current_external_menu_entry_url == "https://www.epfl.ch") {
             $slug = $this->meta()->get_remote_slug();
             $rest_url = $this->meta()->get_rest_url();
@@ -1371,9 +1389,16 @@ class ExternalMenuItem extends \EPFL\Model\UniqueKeyTypedPost
                 error_log(sprintf("plugin-epfl-menus: ExternalMenu '/'->rest_url must not be empty."));
             } else {
                 $language = substr($rest_url, -2);
-                $disk_menu = OnDiskMenu::by_slug_and_language($slug, $language);
-                $json = $disk_menu->read();
+                return OnDiskMenu::by_slug_and_language($slug, $language);
             }
+        } else {
+            return NULL;
+        }
+    }
+
+    function get_remote_menu () {
+        if ($disk_menu = $this->get_on_disk_menu()) {
+            $json = $disk_menu->read();
         } else {
             $json = json_decode($this->meta()->get_items_json());
         }
@@ -1425,9 +1450,8 @@ class OnDiskMenu {
     }
 
     private function _get_path () {
-        $htdocs_path = Site::this_site()->htdocs_path;
-        return $htdocs_path . "/epfl-full-" .
-                            $this->slug ."-". $this->language ."-menu.json";
+        return Site::root()->make_asset_path(
+            "epfl-full-" . $this->slug ."-". $this->language . "-menu.json");
     }
 
     public function write ($item_list) {
@@ -1548,11 +1572,11 @@ class MenuRESTController
      * Shall be called whenever $menu changes (from the point
      * of view of @link get_menu)
      */
-    static function menu_changed ($menu, $causality = NULL, $only_urns = False) {
+    static function menu_changed ($menu, $causality = NULL) {
         $publisher = static::_get_publish_controller($menu);
 
         if ($causality) {
-            $publisher->forward($causality, $only_urns);
+            $publisher->forward($causality);
         } else {
             $publisher->initiate();
         }
@@ -1643,7 +1667,7 @@ class MenuItemController extends CustomPostTypeController
                             $item_list = $menu->get_stitched_down_tree()->export_external()->as_list();
                             $disk_menu->write($item_list);
                             if ($is_true_root) {
-                                MenuRESTController::menu_changed($menu, $event, True);
+                                MenuRESTController::menu_changed($menu, $event);
                             }
                         } else {
                             MenuRESTController::menu_changed($menu, $event);

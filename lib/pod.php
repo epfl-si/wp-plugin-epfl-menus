@@ -93,6 +93,14 @@ class Site {
         return $path;
     }
 
+    function make_asset_path ($relpath) {
+        $homedir = $this->htdocs_path;
+        if ($this->path_under_htdocs) {
+            $homedir .= "/" . $this->path_under_htdocs;
+        }
+        return "$homedir/$relpath";
+    }
+
     function get_url () {
         return 'https://' . static::my_hostport() . $this->get_path();
     }
