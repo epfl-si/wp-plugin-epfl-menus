@@ -1634,21 +1634,17 @@ class MenuItemController extends CustomPostTypeController
                 foreach (MenuMapEntry::all() as $entry) {
                     $menu = $entry->get_menu();
                     if ($menu->update($emi)) {
-                        if (Site::this_site()->is_main_root()) {
-                            $disk_menu = OnDiskMenu::by_entry($entry);
-                            $item_list = $menu->get_stitched_down_tree()->export_external()->as_list();
-                            $disk_menu->write($item_list);
-
-                            # then propagate to "from a different pod" subscribers only
-                            MenuRESTController::menu_changed($menu, $event, True);
-                        }
-                        elseif (!Site::this_site()->is_main_root() &&
+                        $is_true_root = Site::this_site()->is_main_root();
+                        $is_surrogate_root_subscribed_to_true_root = (
                             Site::this_site()->is_root() &&
-                            $emi->get_site_url() == "https://www.epfl.ch") {  # meaning we are in a root but not the main, certainly a lab like site
-
+                            $emi->get_site_url() == "https://www.epfl.ch");  // E.g. /labs
+                        if ($is_true_root || $is_surrogate_root_subscribed_to_true_root) {
                             $disk_menu = OnDiskMenu::by_entry($entry);
                             $item_list = $menu->get_stitched_down_tree()->export_external()->as_list();
                             $disk_menu->write($item_list);
+                            if ($is_true_root) {
+                                MenuRESTController::menu_changed($menu, $event, True);
+                            }
                         } else {
                             MenuRESTController::menu_changed($menu, $event);
                         }
