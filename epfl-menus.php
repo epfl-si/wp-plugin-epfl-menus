@@ -1425,18 +1425,9 @@ class OnDiskMenu {
     }
 
     private function _get_path () {
-        // TODO: in fact, it depends on a lot of things e.g. the NFS
-        // path, and whether there is a .ini file up in the tree (e.g.
-        // for labs)
         $htdocs_path = Site::this_site()->htdocs_path;
-        return $htdocs_path . "/" . $this->get_filename();
-    }
-
-    public function get_filename () {
-        // TODO: in fact, it depends on a lot of things e.g. the NFS
-        // path, and whether there is a .ini file up in the tree (e.g.
-        // for labs)
-        return "epfl-full-". $this->slug ."-". $this->language ."-menu.json";
+        return $htdocs_path . "/epfl-full-" .
+                            $this->slug ."-". $this->language ."-menu.json";
     }
 
     public function write ($item_list) {
