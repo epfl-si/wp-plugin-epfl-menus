@@ -2,7 +2,7 @@
 /*
  * Plugin Name: EPFL Menus
  * Description: Stitch menus across sites
- * Version:     1.2
+ * Version:     1.3
  *
  */
 
@@ -1371,18 +1371,19 @@ class ExternalMenuItem extends \EPFL\Model\UniqueKeyTypedPost
 
     function get_remote_menu () {
         $disk_menu = $this->get_on_disk_menu();
-        if (! $disk_menu) {
-            return $this->get_remote_menu_from_meta();
+        if ($disk_menu) {
+            $json = $disk_menu->read();
+        } else {
+            $json = $this->get_remote_menu_list_from_meta();
         }
 
-        $json = $disk_menu->read();
         if (empty($json)) return;
 
         return new MenuItemBag($json);
     }
 
-    function get_remote_menu_from_meta () {
-        return new MenuItemBag(json_decode($this->meta()->get_items_json()));
+    function get_remote_menu_list_from_meta () {
+        return json_decode($this->meta()->get_items_json());
     }
 
     function get_sync_status () {
@@ -1662,7 +1663,7 @@ class MenuItemController extends CustomPostTypeController
                     // a non-true root (i.e. /labs), write what we
                     // received to disk verbatim (don't re-stitch since
                     // we are not authoritative)
-                    $emi->get_on_disk_menu()->write($emi->get_remote_menu_from_meta());
+                    $emi->get_on_disk_menu()->write($emi->get_remote_menu_list_from_meta());
                 }
             });
     }
