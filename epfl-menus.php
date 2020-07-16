@@ -2,7 +2,7 @@
 /*
  * Plugin Name: EPFL Menus
  * Description: Stitch menus across sites
- * Version:     1.1
+ * Version:     1.2
  *
  */
 
@@ -940,33 +940,6 @@ class Menu
         return false;
     }
 
-    /**
-     * Take into account a (possible) change in $emi
-     *
-     * @return false if we can conservatively ascertain that the
-     *         change in $emi had no effect on "our" tree (in the
-     *         sense of @link get_stitched_down_tree, i.e. the part
-     *         that we are authoritative for); true otherwise
-     */
-    function update ($emi) {
-        // Always trust the caller and attempt to refresh:
-        try {
-            $emi->refresh();
-        } catch (Throwable $t) {  // Non-goal: PHP5 support
-            return false;  // Our tree hasn't changed for sure
-        }
-
-        // Block propagation in case the menu is not listed, in
-        // particular if it is the root menu - that one is of use to
-        // get_fully_stitched_tree() but not get_stitched_down_tree()
-        if (! $this->depends($emi)) return false;
-
-        // We could encache, compare and block null updates here, but
-        // for now this is conservative and good enough
-        // performance-wise:
-        return true;
-    }
-
     function __toString () {
         $thisclass = get_called_class();
 
@@ -1350,9 +1323,19 @@ class ExternalMenuItem extends \EPFL\Model\UniqueKeyTypedPost
     }
 
     function resubscribe () {
+        if ($this->get_on_disk_menu()) {
+            // We don't want to subscribe to the root, if we can avoid
+            // the pubsub chatter by reaching directly into the JSON file.
+            if (! $this->_needs_root_subscription()) return;
+        }
         if ($subscribe_url = $this->meta()->get_rest_subscribe_url()) {
             $this->_get_subscribe_controller()->subscribe($subscribe_url);
         }
+    }
+
+    function _needs_root_subscription () {
+        return Site::this_site()->is_root();  // i.e. /labs - Assuming
+        // the real root doesn't attempt to subscribe to itself
     }
 
     function set_remote_menu ($what) {
@@ -1360,10 +1343,18 @@ class ExternalMenuItem extends \EPFL\Model\UniqueKeyTypedPost
         $this->meta()->set_items_json(json_encode($what->as_list()));
     }
 
-    function get_remote_menu () {
+    /**
+     * Returns the @link OnDiskMenu instance that backs this menu.
+     *
+     * This will return NULL except for the "true" root menu, which is
+     * always available on-disk one way or another (i.e.
+     * /srv/www/www.epfl.ch/htdocs/epfl-full-${slug}-${lang}-menu.json,
+     * or
+     * /srv/labs/www.epfl.ch/htdocs/epfl-full-${slug}-${lang}-menu.json
+     * on labs etc.)
+     */
+    function get_on_disk_menu () {
         $current_external_menu_entry_url = $this->get_site_url();
-        $json = "";
-
         if ($current_external_menu_entry_url == "/" || $current_external_menu_entry_url == "https://www.epfl.ch") {
             $slug = $this->meta()->get_remote_slug();
             $rest_url = $this->meta()->get_rest_url();
@@ -1371,16 +1362,27 @@ class ExternalMenuItem extends \EPFL\Model\UniqueKeyTypedPost
                 error_log(sprintf("plugin-epfl-menus: ExternalMenu '/'->rest_url must not be empty."));
             } else {
                 $language = substr($rest_url, -2);
-                $disk_menu = OnDiskMenu::by_slug_and_language($slug, $language);
-                $json = $disk_menu->read();
+                return OnDiskMenu::by_slug_and_language($slug, $language);
             }
         } else {
-            $json = json_decode($this->meta()->get_items_json());
+            return NULL;
+        }
+    }
+
+    function get_remote_menu () {
+        $disk_menu = $this->get_on_disk_menu();
+        if (! $disk_menu) {
+            return $this->get_remote_menu_from_meta();
         }
 
+        $json = $disk_menu->read();
         if (empty($json)) return;
 
         return new MenuItemBag($json);
+    }
+
+    function get_remote_menu_from_meta () {
+        return new MenuItemBag(json_decode($this->meta()->get_items_json()));
     }
 
     function get_sync_status () {
@@ -1425,18 +1427,8 @@ class OnDiskMenu {
     }
 
     private function _get_path () {
-        // TODO: in fact, it depends on a lot of things e.g. the NFS
-        // path, and whether there is a .ini file up in the tree (e.g.
-        // for labs)
-        $htdocs_path = Site::this_site()->htdocs_path;
-        return $htdocs_path . "/" . $this->get_filename();
-    }
-
-    public function get_filename () {
-        // TODO: in fact, it depends on a lot of things e.g. the NFS
-        // path, and whether there is a .ini file up in the tree (e.g.
-        // for labs)
-        return "epfl-full-". $this->slug ."-". $this->language ."-menu.json";
+        return Site::root()->make_asset_path(
+            "epfl-full-" . $this->slug ."-". $this->language . "-menu.json");
     }
 
     public function write ($item_list) {
@@ -1557,11 +1549,11 @@ class MenuRESTController
      * Shall be called whenever $menu changes (from the point
      * of view of @link get_menu)
      */
-    static function menu_changed ($menu, $causality = NULL, $only_urns = False) {
+    static function menu_changed ($menu, $causality = NULL) {
         $publisher = static::_get_publish_controller($menu);
 
         if ($causality) {
-            $publisher->forward($causality, $only_urns);
+            $publisher->forward($causality);
         } else {
             $publisher->initiate();
         }
@@ -1640,28 +1632,37 @@ class MenuItemController extends CustomPostTypeController
         $emi->add_observer(
             function($event) use ($emi) {
                 set_time_limit(0);
+                try {
+                    $emi->refresh();
+                } catch (Throwable $t) {  // Non-goal: PHP5 support
+                    return;  // Our tree hasn't changed for sure; no propagation needed
+                }
+
+                // Walk connected menus to figure out whether $emi changes one of them.
+                // If so, propagate the changes over both REST and the file system
+                // (if appropriate, i.e. only for the actual root site)
                 foreach (MenuMapEntry::all() as $entry) {
                     $menu = $entry->get_menu();
-                    if ($menu->update($emi)) {
+                    if ($menu->depends($emi)) {
+                        MenuRESTController::menu_changed($menu, $event);
+
                         if (Site::this_site()->is_main_root()) {
-                            $disk_menu = OnDiskMenu::by_entry($entry);
-                            $item_list = $menu->get_stitched_down_tree()->export_external()->as_list();
-                            $disk_menu->write($item_list);
-
-                            # then propagate to "from a different pod" subscribers only
-                            MenuRESTController::menu_changed($menu, $event, True);
-                        }
-                        elseif (!Site::this_site()->is_main_root() &&
-                            Site::this_site()->is_root() &&
-                            $emi->get_site_url() == "https://www.epfl.ch") {  # meaning we are in a root but not the main, certainly a lab like site
-
-                            $disk_menu = OnDiskMenu::by_entry($entry);
-                            $item_list = $menu->get_stitched_down_tree()->export_external()->as_list();
-                            $disk_menu->write($item_list);
-                        } else {
-                            MenuRESTController::menu_changed($menu, $event);
+                            // "Master" JSON write: one of the dependencies of the root menu
+                            // just changed; recompute the whole thing and write it to disk.
+                            OnDiskMenu::by_entry($entry)->write(
+                                $menu->get_stitched_down_tree()->export_external()->as_list());
                         }
                     }
+                }
+
+                if ((! Site::this_site()->is_main_root()) &&
+                    Site::this_site()->is_root() &&
+                    $emi->get_site_url() == "https://www.epfl.ch") {
+                    // "Slave" JSON write: if syncing the root menu to
+                    // a non-true root (i.e. /labs), write what we
+                    // received to disk verbatim (don't re-stitch since
+                    // we are not authoritative)
+                    $emi->get_on_disk_menu()->write($emi->get_remote_menu_from_meta());
                 }
             });
     }

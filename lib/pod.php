@@ -45,7 +45,9 @@ class Site {
         {
             if (static::exists("$htdocs/$under_htdocs")) {
                 $thisclass = get_called_class();
-                return new $thisclass($under_htdocs);
+                $root = new $thisclass($under_htdocs);
+                $root->htdocs_path = $htdocs;
+                return $root;
             }
             if (! count($path_components)) {
                 throw new \Error('Unable to find root site from ' . WP_CONTENT_DIR);
@@ -91,6 +93,14 @@ class Site {
             $path = "$path/";
         }
         return $path;
+    }
+
+    function make_asset_path ($relpath) {
+        $homedir = $this->htdocs_path;
+        if ($this->path_under_htdocs) {
+            $homedir .= "/" . $this->path_under_htdocs;
+        }
+        return "$homedir/$relpath";
     }
 
     function get_url () {
