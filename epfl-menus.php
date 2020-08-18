@@ -2,7 +2,7 @@
 /*
  * Plugin Name: EPFL Menus
  * Description: Stitch menus across sites
- * Version:     1.3
+ * Version:     1.4
  *
  */
 
@@ -503,7 +503,8 @@ class MenuItemBag
     private function _MUTATE_reset_current_ancestry_status ($item) {
         unset($item->current_item_parent);
         unset($item->current_item_ancestor);
-        if ($item->classes) {
+
+        if (property_exists($item, 'classes') && $item->classes) {
             $item->classes = array_filter(
                 $item->classes,
                 function($c) {
