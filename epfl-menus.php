@@ -841,10 +841,9 @@ class Menu
 
         if (! $grafted_count) {
             error_log(sprintf(
-                'Cannot find graft point - Unable to stitch up %s (in %s)\n%s',
+                'Cannot find graft point - Unable to stitch up %s (in %s)',
                 $self,
-                get_site_url(),
-                var_export($root_menu, true)));
+                get_site_url()));
         }
 
         return $tree;
