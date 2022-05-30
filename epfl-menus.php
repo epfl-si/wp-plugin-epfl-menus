@@ -179,7 +179,7 @@ class MenuItemBag
 
         // Fix up 'menu-item-has-children' class or lack thereof
         foreach ($this->items as $item) {
-            if ($classes = $item->classes) {
+            if (isset($item->classes) && $classes = $item->classes) {
                 $item->classes = array_filter(
                     $classes,
                     function($class) {
