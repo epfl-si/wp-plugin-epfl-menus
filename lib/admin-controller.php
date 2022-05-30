@@ -202,7 +202,7 @@ abstract class CustomPostTypeController extends Controller
         wp_enqueue_style('ws-editor');
     }
 
-    static $_columns;
+    static $_columns = [];
     /**
      * Add or mutate a column in the WP_List_Table list view in wp-admin
      *
@@ -212,11 +212,11 @@ abstract class CustomPostTypeController extends Controller
      * @return _CustomPostTypeControllerColumn
      */
     static function column ($slug) {
-        if (! static::$_columns[$slug]) {
-            $_columns[$slug] = new _CustomPostTypeControllerColumn
-                             (get_called_class(), $slug);
+        if (! isset(static::$_columns[$slug])) {
+            static::$_columns[$slug] = new _CustomPostTypeControllerColumn
+            (get_called_class(), $slug);
         }
-        return $_columns[$slug];
+        return static::$_columns[$slug];
     }
 
     static function get_post_type ()
