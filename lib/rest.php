@@ -81,7 +81,8 @@ class REST_API {
                     'methods' => 'GET',
                     'callback' => function($data) use ($thisclass, $callback) {
                         return $thisclass::_call_and_APIfy($callback, $data);
-                    }
+                    },
+                    'permission_callback' => '__return_true',
                 ));
             });
     }
@@ -95,7 +96,8 @@ class REST_API {
                     'methods' => 'POST',
                     'callback' => function($data) use ($thisclass, $callback) {
                         return $thisclass::_call_and_APIfy($callback, $data);
-                    }
+                    },
+                    'permission_callback' => '__return_true',
                 ));
             });
     }
