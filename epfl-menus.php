@@ -1433,7 +1433,9 @@ class OnDiskMenu {
     }
 
     public function write ($item_list) {
-        file_put_contents($this->_get_path(), json_encode($item_list));
+        // file_put_contents($this->_get_path(), json_encode($item_list));
+        // Until we figure out OUT0008472:
+        file_put_contents($this->_get_path(), "[]");
     }
 
     public function read () {
