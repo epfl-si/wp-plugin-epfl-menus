@@ -712,7 +712,7 @@ class Menu
     /**
      * @return A @link MenuItemBag instance
      */
-    private function _get_local_tree () {
+    function _get_local_tree () {
         $items = wp_get_nav_menu_items($this->term_id);
         if ($items === FALSE) {
             throw new MenuError(
@@ -1512,7 +1512,7 @@ class MenuRESTController
 
         $response = new \WP_REST_Response(array(
             'status' => 'OK',
-            'items'  => $menu->export_external()->as_list()));
+            'items'  => $menu->_get_local_tree()->export_external()->as_list()));
         // Note: this link is for subscribing to changes in any
         // language, not just the one being served now.
         $subscribe_link = REST_API::get_entrypoint_url(
@@ -1650,7 +1650,7 @@ class MenuItemController extends CustomPostTypeController
                             // "Master" JSON write: one of the dependencies of the root menu
                             // just changed; recompute the whole thing and write it to disk.
                             OnDiskMenu::by_entry($entry)->write(
-                                $menu->export_external()->as_list());
+                                $menu->_get_local_tree()->export_external()->as_list());
                         }
                     }
                 }
