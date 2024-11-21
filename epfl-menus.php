@@ -2071,18 +2071,23 @@ class MenuFrontendController
 
     static function stitch_menu ($items_orig, $menu_term,
                                  $mimic_current = FALSE) {
-        if ($menu_term &&
-            ($menu = Menu::by_term($menu_term)) &&
-            ($entry = static::_guess_menu_entry_from_menu_term($menu_term)))
-        {
-            $bag = $menu->get_fully_stitched_tree($entry);
+        try {
+            if ($menu_term &&
+                ($menu = Menu::by_term($menu_term)) &&
+                ($entry = static::_guess_menu_entry_from_menu_term($menu_term)))
+            {
+                $bag = $menu->get_fully_stitched_tree($entry);
 
-            if ($mimic_current) {
-                $bag = $bag->mimic_current($items_orig);
+                if ($mimic_current) {
+                    $bag = $bag->mimic_current($items_orig);
+                }
+
+                return $bag->trim_external()->as_list();
+            } else {
+                return $items_orig;
             }
-
-            return $bag->trim_external()->as_list();
-        } else {
+        } catch (TreeLoopError $e) {
+            error_log("TreeLoopError: " . var_export($e, TRUE));
             return $items_orig;
         }
     }
