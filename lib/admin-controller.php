@@ -436,7 +436,7 @@ class _CustomPostTypeControllerColumn
     function add_css ($css)
     {
         // For compatibility with epfl-ws
-        $this->owner_controller->add_editor_css($css);
+        $this->owner->add_editor_css($css);
         return $this;
     }
 
