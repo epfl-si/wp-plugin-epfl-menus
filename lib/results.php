@@ -18,9 +18,9 @@ trait FindFromAllTrait
     /**
      * @return A ResultSet instance
      */
-    function find ($criteria_array) {
+    static function find ($criteria_array) {
         $found = array();
-        foreach ((isset($this) ? $this->all() : static::all()) as $that) {
+        foreach (static::all() as $that) {
             foreach ($criteria_array as $k => $v) {
                 $matcher = _Matcher::make($v);
                 $getter = "get_$k";
