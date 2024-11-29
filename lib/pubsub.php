@@ -218,7 +218,11 @@ class _Subscription extends WPDBModel
     static function drop_tables () {
         static::query("DROP TABLE IF EXISTS %T");
     }
-    
+
+    public $slug;
+    private $nonce;
+    private $confirmed;
+
     protected function __construct ($slug, $nonce, $confirmed = TRUE) {
         $this->slug = $slug;
         $this->nonce = $nonce;
@@ -337,6 +341,8 @@ _Subscription::hook();
  */
 class PublishController
 {
+    private $subscribe_uri;
+
     function __construct ($subscribe_uri) {
         $this->subscribe_uri = $subscribe_uri;
     }
@@ -459,6 +465,11 @@ class _Subscriber extends WPDBModel
             }
         }
     }
+
+    private $ID;
+    private $subscriber_id;
+    private $publisher_url;
+    private $callback_url;
 
     protected function __construct ($id, $details) {
         $this->ID = 0 + $id;

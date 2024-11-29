@@ -413,6 +413,9 @@ td.column-thumbnail img {
  */
 class _CustomPostTypeControllerColumn
 {
+    private $owner;
+    private $slug;
+
     /**
      * "private" constructor, call ::column() in your
      * @link CustomPostTypeController subclass instead.
@@ -427,6 +430,7 @@ class _CustomPostTypeControllerColumn
         $this->set_renderer(array($owner_controller, "render_${slug}_column"));
     }
 
+    private $title;
     function set_title ($translated_title)
     {
         $this->title = $translated_title;

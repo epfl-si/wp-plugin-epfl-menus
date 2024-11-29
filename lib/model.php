@@ -115,6 +115,8 @@ abstract class Post
     */
     abstract protected function _belongs ();
 
+    private $ID;
+
     /**
      * Protected constructor
      */
@@ -145,6 +147,8 @@ abstract class Post
         return $that;
     }
 
+    private $_wp_post;
+
     function wp_post ()
     {
         if (! property_exists($this, '_wp_post')) {
@@ -152,6 +156,8 @@ abstract class Post
         }
         return $this->_wp_post;
     }
+
+    private $_meta;
 
     /**
      * Metaprogrammed accessors e.g.

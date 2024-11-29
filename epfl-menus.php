@@ -91,6 +91,8 @@ class MenuItemBag
         "post_modified", "classes", "xfn", "attr_title", "target", "type", "post_modified_gmt",
         "post_content_filtered", "comment_count", "description", "post_modified"];
 
+    public $items;   # Accessed as $another_menu_tree->items
+    
     function __construct ($items, $hide_tree_problems=false) {
         if (! is_array($items)) {
             throw new \Error('Bad argument: ' . var_export($items, true));
@@ -670,6 +672,8 @@ class Menu
         return $mme->get_menu();
     }
 
+    private $term_id;
+
     private function __construct ($term_id) {
         if ($term_id > 0) {
             $this->term_id = $term_id;
@@ -957,6 +961,12 @@ class Menu
  */
 class MenuMapEntry
 {
+
+    private $menu;
+    private $theme_location;
+    private $description;
+    private $language;
+
     private function __construct(
         $term_or_term_id, $theme_location, $description, $language = NULL)
     {
