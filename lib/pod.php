@@ -137,7 +137,14 @@ class Site {
     }
 
     function get_subsites () {
-        return [];     # TODO: repair
+        $retvals = array();
+        // call WS
+        $response = file_get_contents('http://localhost:3001/siteTree\?url=' . $this->get_url());
+        $response_array = json_decode($response);
+        foreach ($response_array->result->children as $subsite) {
+            $retvals[] = new Site($subsite->url);
+        }
+        return $retvals;
     }
 
     function get_configured_root_menu_url () {
