@@ -1214,7 +1214,7 @@ class ExternalMenuItem extends \EPFL\Model\UniqueKeyTypedPost
 
     use FindFromAllTrait;
 
-    static function load_from_filesystem () {
+    static function load_from_inventory () {
         $me = Site::this_site();
         $neighbors = array_merge(array(Site::root()),
                                  $me->get_subsites());
@@ -1817,7 +1817,7 @@ class MenuItemController extends CustomPostTypeController
         // client-side AJAX app is prepared to deal with 504's
         set_time_limit(120);
 
-        ExternalMenuItem::load_from_filesystem();
+        ExternalMenuItem::load_from_inventory();
         ExternalMenuItem::load_from_config_file();
         $value = array(
             'status' => 'OK',
