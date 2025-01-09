@@ -44,7 +44,7 @@ class EPFLMenusCLICommand extends WP_CLI_Command
 
     public function refresh () {
         WP_CLI::log(___('Enumerating menus on filesystem...'));
-        $local = ExternalMenuItem::load_from_filesystem();
+        $local = ExternalMenuItem::load_from_inventory();
         WP_CLI::log(sprintf(___('... Success, found %d local menus'),
                             count($local)));
 
