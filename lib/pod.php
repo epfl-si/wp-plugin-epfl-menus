@@ -137,14 +137,14 @@ class Site {
     }
 
     function get_subsites () {
-        $retvals = array();
-        // call WS
-        $response = file_get_contents('http://localhost:3001/siteTree\?url=' . $this->get_url());
-        $response_array = json_decode($response);
-        foreach ($response_array->result->children as $subsite) {
-            $retvals[] = new Site($subsite->url);
-        }
-        return $retvals;
+			$retvals = array();
+			$currentUrl = 'https://' . $_SERVER['HTTP_HOST'] . substr($_SERVER['REQUEST_URI'], 0, strpos($_SERVER['REQUEST_URI'],"wp-admin"));
+			$response = file_get_contents('http://menu-api-siblings:3001/siteTree?url=' . $currentUrl);
+			$response_array = json_decode($response);
+			foreach ($response_array->result->children as $subsite) {
+					$retvals[] = new Site($subsite->pathname);
+			}
+			return $retvals;
     }
 
     function get_configured_root_menu_url () {
