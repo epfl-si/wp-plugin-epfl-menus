@@ -115,7 +115,7 @@ abstract class Post
     */
     abstract protected function _belongs ();
 
-    private $ID;
+    public $ID;
 
     /**
      * Protected constructor
