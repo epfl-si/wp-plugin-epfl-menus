@@ -95,6 +95,7 @@ class AutoFields
  * add_meta_boxes as indicated in their respective docstrings.
  */
 class AutoFieldsController {
+    public $model_class;
     /**
      * An instance of the class represents the auto-fields controller for
      * one @param $model_class. Since the instance is stateless, it is fine to

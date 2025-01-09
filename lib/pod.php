@@ -18,6 +18,9 @@ use \Error;
  * filesystem as this Wordpress.
  */
 class Site {
+	private $path_under_htdocs;
+	private $htdocs_path;
+
     protected function __construct ($path_under_htdocs) {
         $this->path_under_htdocs = $path_under_htdocs;
     }
