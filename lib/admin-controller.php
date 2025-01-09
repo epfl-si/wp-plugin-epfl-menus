@@ -415,6 +415,9 @@ class _CustomPostTypeControllerColumn
 {
     private $owner;
     private $slug;
+    public $render;
+    public $sort_opts;
+    public $insert_after;
 
     /**
      * "private" constructor, call ::column() in your

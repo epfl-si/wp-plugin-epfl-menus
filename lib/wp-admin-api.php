@@ -24,6 +24,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Endpoint
 {
+    public $slug;
+
     function __construct ($slug) {
         // $slug must be a valid JS identifier:
         assert(preg_match('/^[A-Za-z_][A-Za-z0-9_]+$/', $slug));
