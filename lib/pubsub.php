@@ -52,6 +52,8 @@ class CausalityLoopError extends \Exception {}
  */
 class SubscribeController
 {
+		public $slug;
+		public $listeners;
     /**
      * @param $slug A unique persistent string for this subscribe controller,
                     also used for loop elimination.
