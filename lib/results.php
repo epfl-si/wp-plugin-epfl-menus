@@ -41,28 +41,28 @@ trait FindFromAllTrait
 
 trait FindFromAllInstanceTrait
 {
-	/**
-	 * @return A ResultSet instance
-	 */
-	function find ($criteria_array) {
-		$found = array();
-		foreach ($this->all() as $that) {
-			foreach ($criteria_array as $k => $v) {
-				$matcher = _Matcher::make($v);
-				$getter = "get_$k";
-				if (method_exists($that, $getter)) {
-					if (! $matcher->matches($that->$getter())) continue 2;
-				} elseif (method_exists($that, 'meta') and
-					$that->meta()->has($k)) {
-					if (! $matcher->matches($that->meta()->$getter())) continue 2;
-				} else {
-					if (! $matcher->matches($that->$k)) continue 2;
-				}
-			}
-			$found[] = $that;
-		}
-		return new InMemoryResultSet($found);
-	}
+  /**
+   * @return A ResultSet instance
+   */
+  function find ($criteria_array) {
+    $found = array();
+    foreach ($this->all() as $that) {
+      foreach ($criteria_array as $k => $v) {
+        $matcher = _Matcher::make($v);
+        $getter = "get_$k";
+        if (method_exists($that, $getter)) {
+          if (! $matcher->matches($that->$getter())) continue 2;
+        } elseif (method_exists($that, 'meta') and
+          $that->meta()->has($k)) {
+          if (! $matcher->matches($that->meta()->$getter())) continue 2;
+        } else {
+          if (! $matcher->matches($that->$k)) continue 2;
+        }
+      }
+      $found[] = $that;
+    }
+    return new InMemoryResultSet($found);
+  }
 }
 
 // Some day, we will have various matching operators and the ability
