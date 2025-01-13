@@ -2039,22 +2039,6 @@ class MenuFrontendController
         add_filter('home_url',
                    array(get_called_class(), 'home_url_is_root_site_url_for_theme'),
                    100, 4);
-
-        // Note: Polylang also hooks into these two and it isn't quite
-        // as careful as we are about preserving tree invariants
-        // (topological ordering and child-parent referential
-        // integrity). Make sure to register ourselves after it.
-//        add_filter('wp_get_nav_menu_items',
-//                   array(get_called_class(), 'filter_wp_nav_menu_items_for_theme'),
-//                   30, 3);
-//
-//        add_filter('wp_nav_menu_objects',
-//                   array(get_called_class(), 'filter_wp_nav_menu_objects'),
-//                   20, 2);
-//
-//        add_filter('epfl_root_menu_ready',
-//                   array(get_called_class(), 'filter_epfl_root_menu_ready'),
-//                   20, 2);
     }
 
     /**
