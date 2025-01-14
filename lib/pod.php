@@ -141,7 +141,7 @@ class Site {
 
     function get_subsites () {
       $retvals = array();
-      $currentUrl = 'https://' . $_SERVER['HTTP_HOST'] . '.epfl.ch' . substr($_SERVER['REQUEST_URI'], 0, strpos($_SERVER['REQUEST_URI'],"wp-admin"));
+      $currentUrl = 'https://' . $_SERVER['HTTP_HOST'] . substr($_SERVER['REQUEST_URI'], 0, strpos($_SERVER['REQUEST_URI'],"wp-admin"));
       $response = file_get_contents('http://menu-api-siblings:3001/siteTree?url=' . $currentUrl);
       $response_array = json_decode($response);
       foreach ($response_array->result->children as $subsite) {
