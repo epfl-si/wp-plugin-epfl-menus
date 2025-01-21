@@ -219,6 +219,8 @@ class RESTRemoteError extends RESTClientError {}
 
 class RESTClient
 {
+		private $base_uri;
+
     function __construct () {}
 
     function set_base_uri($base_uri) {
@@ -282,6 +284,12 @@ class RESTClient
 
 class _RESTRequestBase
 {
+		protected $url;
+		protected $method;
+		protected $headers;
+		protected $body;
+		protected $_connect_to;
+
     function __construct ($url, $method = 'GET') {
         $this->url = $url;
         $this->method = $method;
