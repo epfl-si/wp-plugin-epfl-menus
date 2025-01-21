@@ -235,12 +235,13 @@ class RESTClient
      * a class method. Prepend "@" to a static call to get rid of
      * the PHP notice.
      */
-    function GET_JSON ($url) {
-        if (! isset($this)) {
-            return (new static())->GET_JSON($url);
-        }
+		function GET_JSON ($url) {
+			$url = $this->_canonicalize_url($url);
+			return HALJSON::decode((new _RESTRequestCurl($url, 'GET'))->execute());
+		}
 
-        $url = $this->_canonicalize_url($url);
+    static function GET_JSON_absolute ($url) {
+        $url = (new static())->_canonicalize_url($url);
         return HALJSON::decode((new _RESTRequestCurl($url, 'GET'))->execute());
     }
 
@@ -251,7 +252,7 @@ class RESTClient
      * a class method. Prepend "@" to a static call to get rid of
      * the PHP notice.
      */
-    static function POST_JSON ($url, $data) {
+    static function POST_JSON_absolute ($url, $data) {
         $url = (new static())->_canonicalize_url($url);
         return HALJSON::decode((new _RESTRequestCurl($url, 'POST'))
                                ->setup_POST($data)->execute());
