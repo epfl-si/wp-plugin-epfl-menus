@@ -32,6 +32,8 @@ use function EPFL\ThisPlugin\on_deactivate;
 
 class AutoFields
 {
+    private $model_class;
+
     private function __construct ($for_class)
     {
         $this->model_class = $for_class;
