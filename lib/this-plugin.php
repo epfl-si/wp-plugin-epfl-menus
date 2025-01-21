@@ -25,7 +25,7 @@ function entry_point () {
  * Reference, enqueue etc. assets in this plugin by relative path
  */
 class Asset {
-		private $relpath;
+    private $relpath;
 
     function __construct ($relpath) {
         $this->relpath = $relpath;
