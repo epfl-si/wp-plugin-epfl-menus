@@ -92,7 +92,7 @@ class MenuItemBag
         "post_content_filtered", "comment_count", "description", "post_modified"];
 
     public $items;   # Accessed as $another_menu_tree->items
-    
+
     function __construct ($items, $hide_tree_problems=false) {
         if (! is_array($items)) {
             throw new \Error('Bad argument: ' . var_export($items, true));
@@ -1159,7 +1159,7 @@ class ExternalMenuItem extends \EPFL\Model\UniqueKeyTypedPost
         $url = $this->meta()->get_rest_url();
 
         if ($this->get_urn()) return;
-        $url = preg_replace('#^https://localhost:8443#', '', $url);  # XXX TMPHACK
+        $url = parse_url($url, PHP_URL_PATH) . '?' . parse_url($url, PHP_URL_QUERY);
         return $url;
     }
 
