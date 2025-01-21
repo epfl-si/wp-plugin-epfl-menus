@@ -1216,17 +1216,14 @@ class ExternalMenuItem extends \EPFL\Model\UniqueKeyTypedPost
 
     static function load_from_inventory () {
         $me = Site::this_site();
-        $neighbors = array_merge(array(Site::root()),
-                                 $me->get_subsites());
+        $neighbors = $me->get_subsite_urls();
 
         $instances = array();
-        foreach ($neighbors as $site) {
-            if ($site->equals($me)) continue;
+        foreach ($neighbors as $site_url) {
             try {
                 $instances = array_merge(
                     $instances,
-                    static::load_from_wp_site_url(
-                        $site->get_path()));
+                    static::load_from_wp_site_url($site_url));
             } catch (RESTRemoteError $e) {
                 error_log("[Not our fault, IGNORED] " . $e);
                 continue;
