@@ -60,7 +60,7 @@ class SubscribeController
      */
     private function __construct ($slug) {
         $this->slug = $slug;
-    
+
         $this->listeners = [];
     }
 
@@ -170,7 +170,7 @@ class SubscribeController
             $sub->get_entrypoint_uri());
 
         try {
-            @RESTClient::POST_JSON(
+            @RESTClient::POST_JSON_absolute(
                 $remote_url,
                 array(
                     "subscriber_id" => $this->_get_subscriber_id(),
@@ -558,7 +558,7 @@ class _Subscriber extends WPDBModel
         // it would save.
         try {
             if ($is_sync) {
-                @RESTClient::POST_JSON($url, $payload);
+                @RESTClient::POST_JSON_absolute($url, $payload);
             } else {
                 @RESTClient::POST_JSON_ff($url, $payload);
             }
