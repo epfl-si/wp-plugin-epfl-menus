@@ -54,7 +54,7 @@ class Site {
     }
 
     function get_path () {
-        $path = str_starts_with($this->path_under_htdocs, '/') ?  $this->path_under_htdocs : "/" . $this->path_under_htdocs;
+        $path = $this->path_under_htdocs;
         if (! preg_match('#/$#', $path)) {
             $path = "$path/";
         }
