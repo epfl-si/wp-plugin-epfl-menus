@@ -219,7 +219,7 @@ class RESTRemoteError extends RESTClientError {}
 
 class RESTClient
 {
-		private $base_uri;
+    private $base_uri;
 
     function __construct () {}
 
@@ -235,10 +235,10 @@ class RESTClient
      * a class method. Prepend "@" to a static call to get rid of
      * the PHP notice.
      */
-		function GET_JSON ($url) {
-			$url = $this->_canonicalize_url($url);
-			return HALJSON::decode((new _RESTRequestCurl($url, 'GET'))->execute());
-		}
+    function GET_JSON ($url) {
+        $url = $this->_canonicalize_url($url);
+        return HALJSON::decode((new _RESTRequestCurl($url, 'GET'))->execute());
+    }
 
     static function GET_JSON_absolute ($url) {
         $url = (new static())->_canonicalize_url($url);
@@ -285,11 +285,11 @@ class RESTClient
 
 class _RESTRequestBase
 {
-		protected $url;
-		protected $method;
-		protected $headers;
-		protected $body;
-		protected $_connect_to;
+    protected $url;
+    protected $method;
+    protected $headers;
+    protected $body;
+    protected $_connect_to;
 
     function __construct ($url, $method = 'GET') {
         $this->url = $url;

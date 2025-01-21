@@ -277,8 +277,8 @@ class _PostMeta {
     private $_owner_class;
     private $_post_id;
     private $_meta;
-		private $_meta_accessors;
-		private $_meta_auto_fields_done;
+    private $_meta_accessors;
+    private $_meta_auto_fields_done;
 
     function __construct ($owner_class, $post_id) {
         $this->_owner_class    = $owner_class;
@@ -543,7 +543,7 @@ abstract class UniqueKeyTypedPost extends TypedPost
  */
 class _WPQueryBuilder
 {
-		private $query;
+    private $query;
 
     function __construct ($query)
     {
@@ -654,9 +654,9 @@ class _WPQueryBuilder
  */
 class _InTheLoopHelper
 {
-		private $wp_query;
-		private $_in_the_loop_orig;
-		private $_wp_query_orig;
+    private $wp_query;
+    private $_in_the_loop_orig;
+    private $_wp_query_orig;
 
     /**
      * Prepare to pretend that $wp_query is the main query (which is what
