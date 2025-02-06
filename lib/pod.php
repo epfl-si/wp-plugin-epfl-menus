@@ -32,7 +32,9 @@ class Site {
     static function this_site () {
         $thisclass = get_called_class();
         $htdocs_path = ".";  # TODO: repair
-        $under_htdocs = "";  # TODO: repair
+        $under_htdocs = $_SERVER["PHP_SELF"];
+        $under_htdocs = preg_replace('#([^/]*\.php)?$#', '', $under_htdocs);
+        $under_htdocs = preg_replace('#(^|/)wp-[^/]*/?$#', '$1', $under_htdocs);
         $that = new $thisclass($under_htdocs);
         $that->htdocs_path = $htdocs_path;
         return $that;
