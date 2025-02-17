@@ -144,7 +144,7 @@ class Site {
     function get_subsite_urls () {
       $retvals = array();
       $currentUrl = 'https://' . $_SERVER['HTTP_HOST'] . substr($_SERVER['REQUEST_URI'], 0, strpos($_SERVER['REQUEST_URI'],"wp-admin"));
-      $response = file_get_contents('http://' . getenv('MENU_API_HOST') . ':3001/siteTree?url=' . $currentUrl);
+      $response = file_get_contents('http://' . $_ENV['MENU_API_HOST'] . ':3001/siteTree?url=' . $currentUrl);
       $response_array = json_decode($response);
       foreach ($response_array->result->children as $subsite) {
           $retvals[] = $subsite->href;
