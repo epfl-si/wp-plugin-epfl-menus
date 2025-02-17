@@ -577,6 +577,8 @@ class _CustomPostTypeControllerColumn
         // Here we could examine $this->sort_opts to support sorting
         // by something other than a meta_key.
         $query->set('orderby', 'meta_value');
-        $query->set('meta_key', $this->sort_opts['meta_key']);
+        if (isset($this->sort_opts)) {
+            $query->set('meta_key', $this->sort_opts['meta_key']);
+        }
     }
 }
