@@ -430,7 +430,7 @@ class _CustomPostTypeControllerColumn
 
         // Default settings:
         $this->set_title($slug);
-        $this->set_renderer(array($owner_controller, "render_${slug}_column"));
+        $this->set_renderer(array($owner_controller, "render_{$slug}_column"));
     }
 
     private $title;
