@@ -1687,6 +1687,7 @@ class MenuItemController extends CustomPostTypeController
         // JS side:
         add_action('current_screen', function() use ($thisclass) {
             if ((get_current_screen()->base === 'edit') &&
+                isset($_REQUEST['post_type']) &&
                 $_REQUEST['post_type'] === static::get_post_type())
             {
                 $thisclass::_get_api()->admin_enqueue();
