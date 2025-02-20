@@ -1065,7 +1065,7 @@ class MenuMapEntry
         $registered = get_registered_nav_menus();
 
         $all = array();
-        $poly_nav_menus = $poly_options['nav_menus'][get_stylesheet()];
+        $poly_nav_menus = key_exists('nav_menus', $poly_options) ? $poly_options['nav_menus'][get_stylesheet()] : false;
         if ($poly_nav_menus) {
             foreach ($poly_nav_menus as $theme_location => $menus) {
                 if (! array_key_exists($theme_location, $registered)) continue;
