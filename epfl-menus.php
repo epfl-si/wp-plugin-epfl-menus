@@ -1643,10 +1643,6 @@ class MenuItemController extends CustomPostTypeController
 
         add_action('rest_api_init', function() use ($thisclass) {
             $thisclass::hook_rest_api_fields();
-            foreach (static::get_model_class()::all()
-                     as $emi) {
-                $thisclass::hook_pubsub($emi);
-            }
         });
 
         static::hook_refresh_button();
@@ -1665,46 +1661,6 @@ class MenuItemController extends CustomPostTypeController
             $hidden = array_diff($hidden, $to_remove);
         }
         return $hidden;
-    }
-
-    static function hook_pubsub ($emi) {
-
-        $emi->add_observer(
-            function($event) use ($emi) {
-                set_time_limit(0);
-                try {
-                    $emi->refresh();
-                } catch (Throwable $t) {  // Non-goal: PHP5 support
-                    return;  // Our tree hasn't changed for sure; no propagation needed
-                }
-
-                // Walk connected menus to figure out whether $emi changes one of them.
-                // If so, propagate the changes over both REST and the file system
-                // (if appropriate, i.e. only for the actual root site)
-                foreach (MenuMapEntry::all() as $entry) {
-                    $menu = $entry->get_menu();
-                    if ($menu->depends($emi)) {
-                        MenuRESTController::menu_changed($menu, $event);
-
-                        if (Site::this_site()->is_main_root()) {
-                            // "Master" JSON write: one of the dependencies of the root menu
-                            // just changed; recompute the whole thing and write it to disk.
-                            OnDiskMenu::by_entry($entry)->write(
-                                $menu->_get_local_tree()->export_external()->as_list());
-                        }
-                    }
-                }
-
-                if ((! Site::this_site()->is_main_root()) &&
-                    Site::this_site()->is_root() &&
-                    $emi->get_site_url() == "https://www.epfl.ch") {
-                    // "Slave" JSON write: if syncing the root menu to
-                    // a non-true root (i.e. /labs), write what we
-                    // received to disk verbatim (don't re-stitch since
-                    // we are not authoritative)
-                    $emi->get_on_disk_menu()->write($emi->get_remote_menu_list_from_meta());
-                }
-            });
     }
 
     static function hook_refresh_button () {
