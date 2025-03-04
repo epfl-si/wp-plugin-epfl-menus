@@ -2002,9 +2002,10 @@ class MenuEditorController
             if (! $new_menu_data) return;
 
             if (! ($menu = Menu::by_term($nav_menu_selected_id))) return;
-
-            MenuRESTController::menu_changed($menu);
-        }, 100, 2);
+            add_action('shutdown', function() use ($menu) {
+                MenuRESTController::menu_changed($menu);
+            }, 10, 0);
+        }, 10, 2);
     }
 }
 
