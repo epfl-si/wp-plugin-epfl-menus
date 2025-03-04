@@ -1561,10 +1561,7 @@ class MenuRESTController
      */
     static function menu_changed ($menu) {
         $site_url = trim(get_site_url());
-        $site_url = trailingslashit( $site_url );
-        if (substr($site_url, -1) === '/') {
-            $site_url = substr($site_url, 0, -1);
-        }
+        $site_url = untrailingslashit( $site_url );
 
         if (function_exists('pll_get_term_language')) {
             $menu_language =  pll_get_term_language($menu->get_term_id());
