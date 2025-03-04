@@ -1559,12 +1559,43 @@ class MenuRESTController
      * of view of @link get_menu)
      */
     static function menu_changed ($menu, $causality = NULL) {
-        $publisher = static::_get_publish_controller($menu);
+        $site_url = trim(get_site_url());
+        $site_url = trailingslashit( $site_url );
+        if (substr($site_url, -1) === '/') {
+            $site_url = substr($site_url, 0, -1);
+        }
 
-        if ($causality) {
-            $publisher->forward($causality);
+        if (function_exists('pll_get_term_language')) {
+            $menu_language =  pll_get_term_language($menu->get_term_id());
         } else {
-            $publisher->initiate();
+            $menu_language = 'en';
+        }
+
+        $menu_api_host = "menu-api";
+        $menu_api_host_from_env = getenv('MENU_API_HOST');
+        if ($menu_api_host_from_env !== false && $menu_api_host_from_env !== '') {
+            $menu_api_host = $menu_api_host_from_env;
+        }
+        $url_api = 'http://' . $menu_api_host . ':3001/refreshSingleMenu/?url=' . $site_url; # &lang=' . $menu_language
+
+        $curl = curl_init($url_api);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, getenv('MENU_API_CURLOPT_CONNECTTIMEOUT') ?? 0);
+        curl_setopt($curl, CURLOPT_TIMEOUT, getenv('MENU_API_CURLOPT_TIMEOUT') ?? 0);
+        $response = curl_exec($curl);
+        if (curl_errno($curl)) {
+            $error_text = curl_error($curl);
+        }
+        curl_close($curl);
+
+        if (isset($error_text)) {
+            error_log( "curl error: {$error_text} at {$url_api}" );
+            return NULL;
+        } elseif ($response === false) {
+            error_log( 'Failed to retrieve data from the API.' );
+            return NULL;
+        } else {
+            return json_decode($response, true);
         }
     }
 }
@@ -2017,7 +2048,7 @@ class MenuEditorController
             if (! ($menu = Menu::by_term($nav_menu_selected_id))) return;
 
             MenuRESTController::menu_changed($menu);
-        }, 10, 2);
+        }, 100, 2);
     }
 }
 
