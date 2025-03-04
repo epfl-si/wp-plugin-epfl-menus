@@ -1558,7 +1558,7 @@ class MenuRESTController
      * Shall be called whenever $menu changes (from the point
      * of view of @link get_menu)
      */
-    static function menu_changed ($menu, $causality = NULL) {
+    static function menu_changed ($menu) {
         $site_url = trim(get_site_url());
         $site_url = trailingslashit( $site_url );
         if (substr($site_url, -1) === '/') {
