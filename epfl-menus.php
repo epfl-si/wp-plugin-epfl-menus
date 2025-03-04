@@ -1999,6 +1999,8 @@ class MenuEditorController
             if (! $new_menu_data) return;
 
             if (! ($menu = Menu::by_term($nav_menu_selected_id))) return;
+            # We can't request the `/refreshSingleMenu` just now, because the Node microservice
+            # would race with PHP completing the request (and it would typically win.)
             add_action('shutdown', function() use ($menu) {
                 MenuRESTController::menu_changed($menu);
             }, 10, 0);
