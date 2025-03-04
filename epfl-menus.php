@@ -1587,10 +1587,10 @@ class MenuRESTController
 
         if (isset($error_text)) {
             error_log( "curl error: {$error_text} at {$url_api}" );
-            return NULL;
+            throw new \Error("curl error: {$error_text} at {$url_api}");
         } elseif ($response === false) {
             error_log( 'Failed to retrieve data from the API.' );
-            return NULL;
+            throw new \Error('Failed to retrieve data from the API.');
         } else {
             return json_decode($response, true);
         }
