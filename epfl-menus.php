@@ -1570,12 +1570,12 @@ class MenuRESTController
         }
 
         $host = get_menu_api_base_url();
-        $url_api = "{$host}/refreshSingleMenu/?url={$site_url}"; # TODO manage language:  &lang=' . $menu_language
+        $api_url = "{$host}/refreshSingleMenu/?url={$site_url}"; # TODO manage language:  &lang=' . $menu_language
 
-        $curl = curl_init($url_api);
+        $curl = curl_init($api_url);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, getenv('MENU_API_CURLOPT_CONNECTTIMEOUT') ?? 1);
-        curl_setopt($curl, CURLOPT_TIMEOUT, getenv('MENU_API_CURLOPT_TIMEOUT') ?? 1);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, getenv('MENU_API_CURLOPT_CONNECTTIMEOUT') ?: 1);
+        curl_setopt($curl, CURLOPT_TIMEOUT, getenv('MENU_API_CURLOPT_TIMEOUT') ?: 1);
         $response = curl_exec($curl);
         if (curl_errno($curl)) {
             $error_text = curl_error($curl);
@@ -1583,8 +1583,8 @@ class MenuRESTController
         curl_close($curl);
 
         if (isset($error_text)) {
-            error_log( "curl error: {$error_text} at {$url_api}" );
-            throw new \Error("curl error: {$error_text} at {$url_api}");
+            error_log( "curl error: {$error_text} at {$api_url}" );
+            throw new \Error("curl error: {$error_text} at {$api_url}");
         } elseif ($response === false) {
             error_log( 'Failed to retrieve data from the API.' );
             throw new \Error('Failed to retrieve data from the API.');
