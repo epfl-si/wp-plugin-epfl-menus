@@ -36,6 +36,7 @@ require_once(__DIR__ . '/lib/results.php');
 use \EPFL\Results\FindFromAllTrait;
 
 require_once(__DIR__ . '/lib/rest.php');
+use function \EPFL\REST\get_menu_api_base_url;
 use \EPFL\REST\REST_API;
 use \EPFL\REST\RESTClient;
 use \EPFL\REST\RESTClientError;
@@ -1571,12 +1572,8 @@ class MenuRESTController
             $menu_language = 'en';
         }
 
-        $menu_api_host = "menu-api";
-        $menu_api_host_from_env = getenv('MENU_API_HOST');
-        if ($menu_api_host_from_env !== false && $menu_api_host_from_env !== '') {
-            $menu_api_host = $menu_api_host_from_env;
-        }
-        $url_api = 'http://' . $menu_api_host . ':3001/refreshSingleMenu/?url=' . $site_url; # &lang=' . $menu_language
+        $host = get_menu_api_base_url();
+        $url_api = "{$host}/refreshSingleMenu/?url={$site_url}"; # TODO manage language:  &lang=' . $menu_language
 
         $curl = curl_init($url_api);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
