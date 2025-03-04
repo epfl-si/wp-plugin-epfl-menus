@@ -1577,8 +1577,8 @@ class MenuRESTController
 
         $curl = curl_init($url_api);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, getenv('MENU_API_CURLOPT_CONNECTTIMEOUT') ?? 0);
-        curl_setopt($curl, CURLOPT_TIMEOUT, getenv('MENU_API_CURLOPT_TIMEOUT') ?? 0);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, getenv('MENU_API_CURLOPT_CONNECTTIMEOUT') ?? 1);
+        curl_setopt($curl, CURLOPT_TIMEOUT, getenv('MENU_API_CURLOPT_TIMEOUT') ?? 1);
         $response = curl_exec($curl);
         if (curl_errno($curl)) {
             $error_text = curl_error($curl);
