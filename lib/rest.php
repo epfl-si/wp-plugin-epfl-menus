@@ -21,6 +21,11 @@ use \EPFL\Pod\Site;
 const _API_EPFL_PATH = 'epfl/v1';
 
 
+function get_menu_api_base_url() {
+    $host = getenv('MENU_API_HOST') ?: 'menu-api';
+    return "http://{$host}:3001";
+}
+
 class RESTAPIError extends \Exception {
     function __construct($http_code, $payload) {
         if (is_string($payload)) {
