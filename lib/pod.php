@@ -143,8 +143,13 @@ class Site {
 
     function get_subsite_urls () {
       $retvals = array();
+      $menu_api_host = "menu-api";
+      $menu_api_host_from_env = getenv('MENU_API_HOST');
+      if ($menu_api_host_from_env !== false && $menu_api_host_from_env !== '') {
+        $menu_api_host = $menu_api_host_from_env;
+      }
       $currentUrl = 'https://' . $_SERVER['HTTP_HOST'] . substr($_SERVER['REQUEST_URI'], 0, strpos($_SERVER['REQUEST_URI'],"wp-admin"));
-      $response = file_get_contents('http://' . $_ENV['MENU_API_HOST'] . ':3001/siteTree?url=' . $currentUrl);
+      $response = file_get_contents('http://' . $menu_api_host . ':3001/siteTree?url=' . $currentUrl);
       $response_array = json_decode($response);
       foreach ($response_array->result->children as $subsite) {
           $retvals[] = $subsite->href;
