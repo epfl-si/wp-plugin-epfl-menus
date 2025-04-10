@@ -481,9 +481,7 @@ class _RESTRequestSocketFireAndForget extends _RESTRequestBase {
 }
 
 add_filter('epfl_rest_rewrite_connect_to', function($hostport, $url) {
-    if ($hostport === "www.epfl.ch:443") {
-        return "wp-nginx:8443";
-    } elseif ($hostport === "wp-httpd:443") {        # wp-dev
+    if ($hostport === "wp-httpd:443") {        # wp-dev
         return "wp-httpd:8443";
     } else {
         return $hostport;
