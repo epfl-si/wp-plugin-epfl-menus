@@ -140,7 +140,7 @@ class Site {
      * has not a configurated root menu.
      */
     function is_main_root () {
-        return TRUE;     # TODO: repair
+        return TRUE;
     }
 
     function get_subsite_urls () {
@@ -168,6 +168,6 @@ class Site {
      */
 
     static function get_pod_config ($key='') {
-        return [];  # TODO: repair
+        return [];
     }
 }
