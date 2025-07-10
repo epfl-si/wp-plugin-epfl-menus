@@ -27,6 +27,8 @@ function get_menu_api_base_url() {
 }
 
 class RESTAPIError extends \Exception {
+	public $status;
+	public $payload;
     function __construct($http_code, $payload) {
         if (is_string($payload)) {
             $payload = array(
