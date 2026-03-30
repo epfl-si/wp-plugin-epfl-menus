@@ -883,7 +883,7 @@ class Menu
     }
 
     public function has_root_menu ($theme_slug) {
-        return (boolean) $this->_get_root_menu(Site::this_site(), $theme_slug);
+        return (bool) $this->_get_root_menu(Site::this_site(), $theme_slug);
     }
 
     /**
