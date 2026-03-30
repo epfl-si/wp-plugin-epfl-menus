@@ -1580,7 +1580,6 @@ class MenuRESTController
         if (curl_errno($curl)) {
             $error_text = curl_error($curl);
         }
-        curl_close($curl);
 
         if (isset($error_text)) {
             error_log( "curl error: {$error_text} at {$api_url}" );
