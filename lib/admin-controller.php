@@ -206,7 +206,7 @@ abstract class CustomPostTypeController extends Controller
     /**
      * Add or mutate a column in the WP_List_Table list view in wp-admin
      *
-     * By default, the class method "render_${slug}_column" will be called
+     * By default, the class method "render_{$slug}_column" will be called
      * to render the contents of the column.
      *
      * @return _CustomPostTypeControllerColumn
@@ -406,7 +406,7 @@ td.column-thumbnail img {
 /**
  * A custom column in the WP_List_Table view
  *
- * By default, the class method "render_${slug}_column" will be called
+ * By default, the class method "render_{$slug}_column" will be called
  * to render the contents of the column; but this can be changed by
  * invoking @link set_renderer. (In both cases, the callback argument
  * is the instance of the model class to render the column for.)

@@ -1356,9 +1356,9 @@ class ExternalMenuItem extends \EPFL\Model\UniqueKeyTypedPost
      *
      * This will return NULL except for the "true" root menu, which is
      * always available on-disk one way or another (i.e.
-     * /srv/www/www.epfl.ch/htdocs/epfl-full-${slug}-${lang}-menu.json,
+     * /srv/www/www.epfl.ch/htdocs/epfl-full-{$slug}-{$lang}-menu.json,
      * or
-     * /srv/labs/www.epfl.ch/htdocs/epfl-full-${slug}-${lang}-menu.json
+     * /srv/labs/www.epfl.ch/htdocs/epfl-full-{$slug}-{$lang}-menu.json
      * on labs etc.)
      */
     function get_on_disk_menu () {

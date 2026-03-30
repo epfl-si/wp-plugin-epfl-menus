@@ -46,13 +46,13 @@ class Endpoint
     /**
      * Register $class as having AJAX and/or custom POST handlers
      *
-     * All methods in $class whose name is like ajax_${method_stem}
+     * All methods in $class whose name is like ajax_{$method_stem}
      * are set up as so-called "WP-AJAX" handlers, available at URL
-     * /admin-ajax.php?action=epfl_${slug}_${method_stem}, where $slug
+     * /admin-ajax.php?action=epfl_{$slug}_{$method_stem}, where $slug
      * is the constructor parameter. Likewise, all methods in $class
-     * whose name matches admin_post_${method_stem} are hooked up as
+     * whose name matches admin_post_{$method_stem} are hooked up as
      * so-called "custom POST handlers", at address
-     * /post.php?action=epfl_${slug}_${method_stem}.
+     * /post.php?action=epfl_{$slug}_{$method_stem}.
      *
      * WP-AJAX handler methods can obtain the details of a GET AJAX
      * request in $_GET, and/or $_REQUEST; in the case of a proper
