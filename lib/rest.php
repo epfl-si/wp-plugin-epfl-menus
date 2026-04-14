@@ -158,28 +158,12 @@ class REST_API {
     static function hook_polylang_lang_query_param () {
         if (! static::_doing_rest_request()) return;
 
-        // The easy way: when Languages -> Settings -> URL
+        // When Languages -> Settings -> URL
         // modifications is set to "The language is set from the
         // directory name in pretty permalinks", and except for the
         // root site (see below), Polylang does the needful for
         // AJAX-on-front requests.
         add_filter('pll_is_ajax_on_front', function($isit) { return true; });
-
-        // The hard way: take the matter into our own hands if we are
-        // in the wrong "if" branch of PLL_Frontend::init() (the one
-        // that bears a comment to the tune of, "Don't set any
-        // language for REST requests when Polylang Pro is not active"
-        // #groan)
-        add_action('pll_no_language_defined', function() {
-            require(__DIR__ . '/polylang.php');
-            global $polylang;
-
-            $chooser = new \EPFL\Polylang\PLL_Choose_Lang($polylang);
-            $chooser->init();
-            // Also enable the Polylang menu overrides (as would also
-            // be done in the other "if" branch):
-            new \PLL_Frontend_Nav_Menu($polylang);
-        });
     }
 
     /**
